@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Sparkles, Trash2, Mic, MicOff, Volume2, VolumeX, StopCircle, MessageSquare, Copy, Check, Share2, CornerDownRight } from 'lucide-react';
+import { Send, User, Sparkles, Trash2, Mic, MicOff, Volume2, VolumeX, StopCircle, MessageSquare, Copy, Check, Share2, CornerDownRight, AlertCircle } from 'lucide-react';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
 interface Message {
@@ -34,6 +34,7 @@ const TanyaAiView: React.FC = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [autoRead, setAutoRead] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -106,8 +107,10 @@ const TanyaAiView: React.FC = () => {
     const query = textOverride || inputText;
     if (!query.trim() || isLoading) return;
 
+    setConnectionError(null);
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsgId = Date.now();
+    
     setMessages(prev => [...prev, { id: userMsgId, role: 'user', text: query, timestamp }]);
     setInputText('');
     setIsLoading(true);
@@ -117,21 +120,25 @@ const TanyaAiView: React.FC = () => {
     setMessages(prev => [...prev, { id: aiMsgId, role: 'ai', text: '', isStreaming: true, timestamp }]);
 
     try {
+      // Inisialisasi API Gemini secara langsung dengan API KEY lingkungan
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const result = await ai.models.generateContentStream({
+      
+      const responseStream = await ai.models.generateContentStream({
         model: 'gemini-3-flash-preview',
         contents: query,
         config: {
-            systemInstruction: "Anda adalah 'Ustadz Digital' yang bijaksana, edukatif, dan ramah di aplikasi Muslim Daily. Jawablah setiap pertanyaan dengan nilai-nilai Islami yang moderat dan menyejukkan. Gunakan sapaan hangat seperti 'Saudaraku' atau 'Ananda'. Berikan dalil jika relevan namun tetap ringkas. Gunakan bahasa Indonesia yang santun dan mudah dipahami. Jangan gunakan format markdown yang rumit, berikan teks bersih.",
-            temperature: 0.8,
+            systemInstruction: "Anda adalah 'Ustadz Digital' yang bijaksana, edukatif, dan ramah di aplikasi Muslim Daily. Jawablah setiap pertanyaan dengan nilai-nilai Islami yang moderat dan menyejukkan. Gunakan sapaan hangat seperti 'Saudaraku' atau 'Ananda'. Berikan dalil Al-Qur'an atau Hadits jika relevan namun tetap ringkas. Gunakan bahasa Indonesia yang santun. Berikan teks bersih tanpa format markdown yang berat.",
+            temperature: 0.7,
+            topP: 0.95,
+            topK: 40
         }
       });
 
       let fullResponse = '';
-      for await (const chunk of result) {
+      for await (const chunk of responseStream) {
         if (!isMounted.current) break;
-        const text = chunk.text;
-        fullResponse += text;
+        const chunkText = chunk.text;
+        fullResponse += chunkText;
         setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: fullResponse } : m));
       }
       
@@ -139,9 +146,15 @@ const TanyaAiView: React.FC = () => {
         setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, isStreaming: false } : m));
         if (autoRead) speakText(fullResponse);
       }
-    } catch (e) {
+    } catch (e: any) {
+      console.error("Gemini API Error:", e);
       if (isMounted.current) {
-        setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: "Afwan, terjadi gangguan koneksi. Mari kita coba lagi sebentar lagi.", isStreaming: false } : m));
+        setConnectionError("Gagal terhubung ke layanan AI. Pastikan koneksi internet stabil.");
+        setMessages(prev => prev.map(m => m.id === aiMsgId ? { 
+            ...m, 
+            text: "Afwan, sepertinya ada sedikit kendala koneksi dengan pusat data kami. Mari kita coba lagi sebentar lagi.", 
+            isStreaming: false 
+        } : m));
       }
     } finally {
       if (isMounted.current) setIsLoading(false);
@@ -160,8 +173,8 @@ const TanyaAiView: React.FC = () => {
                   <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-[#3B5998] rounded-full"></div>
               </div>
               <div className="flex flex-col">
-                  <h4 className="text-[#EFFACD] text-sm font-bold leading-tight tracking-wide">Ustadz AI</h4>
-                  <span className="text-green-300 text-[10px] uppercase font-bold tracking-tighter opacity-80">Siap Menjawab</span>
+                  <h4 className="text-[#EFFACD] text-sm font-bold leading-tight tracking-wide">Asisten AI Terhubung</h4>
+                  <span className="text-green-300 text-[10px] uppercase font-bold tracking-tighter opacity-80">Aktif & Responsif</span>
               </div>
           </div>
           <div className="flex gap-1.5">
@@ -183,21 +196,26 @@ const TanyaAiView: React.FC = () => {
       </div>
 
       {/* Messages Scrolling Area */}
-      <div className="flex-1 overflow-y-auto p-4 pt-20 pb-28 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 pt-20 pb-28 space-y-6 custom-scrollbar">
+          {connectionError && (
+              <div className="bg-red-500/20 border border-red-500/50 p-3 rounded-xl flex items-center gap-3 text-red-100 text-xs animate-fade-in">
+                  <AlertCircle size={16} />
+                  <span>{connectionError}</span>
+              </div>
+          )}
+
           {messages.map((msg) => {
               const isUser = msg.role === 'user';
               return (
                   <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-slide-up`}>
                       <div className={`flex flex-col max-w-[88%] ${isUser ? 'items-end' : 'items-start'}`}>
                           <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end group`}>
-                              {/* Avatar Icon */}
                               <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg border
                                   ${isUser ? 'bg-[#EFFACD] text-[#3B5998] border-white/20' : 'bg-white text-blue-600 border-blue-100'}
                               `}>
                                   {isUser ? <User size={16} /> : <Sparkles size={16} />}
                               </div>
                               
-                              {/* Bubble */}
                               <div className={`p-4 rounded-2xl shadow-xl text-sm relative transition-all duration-300
                                   ${isUser 
                                     ? 'bg-gradient-to-br from-[#EFFACD] to-[#dce8b3] text-[#3B5998] rounded-tr-none' 
@@ -211,35 +229,33 @@ const TanyaAiView: React.FC = () => {
                                     </div>
                                   ))}
                                   
-                                  {/* Message Tools for AI */}
                                   {!isUser && !msg.isStreaming && (
                                       <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                          <button onClick={() => speakText(msg.text)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Dengarkan">
+                                          <button onClick={() => speakText(msg.text)} className="text-slate-400 hover:text-blue-600 transition-colors">
                                               <Volume2 size={14} />
                                           </button>
-                                          <button onClick={() => handleCopy(msg.text, msg.id)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Salin">
+                                          <button onClick={() => handleCopy(msg.text, msg.id)} className="text-slate-400 hover:text-blue-600 transition-colors">
                                               {copiedId === msg.id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                                           </button>
-                                          <button className="text-slate-400 hover:text-blue-600 transition-colors" title="Bagikan">
+                                          <button className="text-slate-400 hover:text-blue-600 transition-colors">
                                               <Share2 size={14} />
                                           </button>
                                       </div>
                                   )}
                               </div>
                           </div>
-                          <span className="text-[10px] text-[#EFFACD]/40 mt-1.5 font-medium px-1 flex items-center gap-1">
-                            {msg.timestamp} {isUser && <Check size={10} />}
+                          <span className="text-[10px] text-[#EFFACD]/40 mt-1.5 font-medium px-1">
+                            {msg.timestamp}
                           </span>
                       </div>
                   </div>
               );
           })}
           
-          {/* Quick Prompts UI */}
           {messages.length === 1 && !isLoading && (
               <div className="mt-8 space-y-3 animate-fade-in px-2">
                   <p className="text-[#EFFACD]/60 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                      <MessageSquare size={12} /> Topik Sering Ditanyakan
+                      <MessageSquare size={12} /> Ajukan Pertanyaan Berikut
                   </p>
                   <div className="flex flex-col gap-2.5">
                       {QUICK_PROMPTS.map((p, i) => (
@@ -260,7 +276,7 @@ const TanyaAiView: React.FC = () => {
 
       {/* Premium Input Dock */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#3B5998] via-[#3B5998]/90 to-transparent">
-          <div className="bg-white/15 backdrop-blur-2xl rounded-3xl flex items-center p-2 border border-white/25 focus-within:border-[#EFFACD] focus-within:ring-2 focus-within:ring-[#EFFACD]/20 transition-all shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <div className="bg-white/15 backdrop-blur-2xl rounded-3xl flex items-center p-2 border border-white/25 focus-within:border-[#EFFACD] focus-within:ring-2 focus-within:ring-[#EFFACD]/20 transition-all shadow-2xl">
               <button 
                   onClick={toggleListening}
                   className={`p-4 rounded-2xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse shadow-lg' : 'text-[#EFFACD] hover:bg-white/10'}`}
@@ -273,7 +289,7 @@ const TanyaAiView: React.FC = () => {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder={isListening ? "Mendengarkan ucapan Anda..." : "Tanya seputar Islam..."}
+                  placeholder={isListening ? "Mendengarkan suara Anda..." : "Tulis pertanyaan Anda..."}
                   className="flex-1 bg-transparent px-3 py-3 text-white placeholder-[#EFFACD]/40 focus:outline-none text-sm font-medium"
               />
               
@@ -285,7 +301,6 @@ const TanyaAiView: React.FC = () => {
                   {isSpeaking ? <StopCircle size={22} /> : <Send size={22} />}
               </button>
           </div>
-          {isListening && <div className="text-center mt-2 text-[10px] text-white/40 uppercase tracking-widest font-bold">Tekan icon microphone untuk berhenti</div>}
       </div>
     </div>
   );
