@@ -1,0 +1,104 @@
+import React from 'react';
+import { Bell, Info, Moon, Code, ShieldCheck } from 'lucide-react';
+
+interface SettingsViewProps {
+  darkMode: boolean;
+  setDarkMode: (val: boolean) => void;
+  notifEnabled: boolean;
+  setNotifEnabled: (val: boolean) => void;
+}
+
+const SettingsView: React.FC<SettingsViewProps> = ({ 
+  darkMode, 
+  setDarkMode, 
+  notifEnabled, 
+  setNotifEnabled 
+}) => {
+    return (
+        <div className="w-full flex flex-col h-full animate-fade-in-up space-y-4 pt-2">
+            {/* Group 1: General */}
+            <div className={`rounded-xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
+                <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-wider border-b border-current pb-2 opacity-40">Umum</h3>
+                <div className="space-y-5">
+                    {/* Toggle Notifikasi */}
+                    <div 
+                        className="flex items-center justify-between group cursor-pointer"
+                        onClick={() => setNotifEnabled(!notifEnabled)}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                <Bell size={20} />
+                            </div>
+                            <span className="font-semibold text-sm">Notifikasi Adzan</span>
+                        </div>
+                        {/* Toggle Switch */}
+                        <div className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${notifEnabled ? (darkMode ? 'bg-[#EFFACD]' : 'bg-[#3B5998]') : 'bg-gray-300'}`}>
+                            <div className={`w-4 h-4 rounded-full absolute top-1 shadow-sm transition-all ${notifEnabled ? 'right-1' : 'left-1'} ${notifEnabled ? (darkMode ? 'bg-[#3B5998]' : 'bg-[#EFFACD]') : 'bg-white'}`}></div>
+                        </div>
+                    </div>
+
+                    {/* Toggle Mode Gelap */}
+                     <div 
+                        className="flex items-center justify-between group cursor-pointer"
+                        onClick={() => setDarkMode(!darkMode)}
+                     >
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                <Moon size={20} />
+                            </div>
+                            <span className="font-semibold text-sm">Mode Gelap</span>
+                        </div>
+                        {/* Toggle Switch */}
+                        <div className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${darkMode ? (darkMode ? 'bg-[#EFFACD]' : 'bg-[#3B5998]') : 'bg-gray-300'}`}>
+                            <div className={`w-4 h-4 rounded-full absolute top-1 shadow-sm transition-all ${darkMode ? 'right-1' : 'left-1'} ${darkMode ? (darkMode ? 'bg-[#3B5998]' : 'bg-[#EFFACD]') : 'bg-white'}`}></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Group 2: About */}
+            <div className={`rounded-xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
+                <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-wider border-b border-current pb-2 opacity-40">Tentang Aplikasi</h3>
+                <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                <Info size={20} />
+                            </div>
+                            <span className="font-semibold text-sm">Versi Aplikasi</span>
+                        </div>
+                        <span className="text-sm font-bold opacity-60 px-2 py-1 rounded bg-black/5">v1.0.0</span>
+                    </div>
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                <Code size={20} />
+                            </div>
+                            <span className="font-semibold text-sm">Pengembang</span>
+                        </div>
+                        <span className="text-sm font-bold opacity-60">Muslim Daily Team</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                <ShieldCheck size={20} />
+                            </div>
+                            <span className="font-semibold text-sm">Kebijakan Privasi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-end items-center pb-6 opacity-40">
+                <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center mb-2 ${darkMode ? 'border-[#2D3748] text-[#2D3748]' : 'border-[#EFFACD] text-[#EFFACD]'}`}>
+                    <span className="font-arabic text-xl">القرآن</span>
+                </div>
+                <p className={`text-[10px] tracking-widest uppercase ${darkMode ? 'text-[#2D3748]' : 'text-[#EFFACD]'}`}>
+                    Muslim Daily App &copy; 2024
+                </p>
+            </div>
+        </div>
+    );
+};
+
+export default SettingsView;
