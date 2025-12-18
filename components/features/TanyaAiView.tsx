@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Sparkles, Trash2, Mic, MicOff, Volume2, VolumeX, StopCircle, MessageSquare, Copy, Check, Share2, Info } from 'lucide-react';
+import { Send, User, Sparkles, Trash2, Mic, MicOff, Volume2, VolumeX, StopCircle, MessageSquare, Copy, Check, Share2, CornerDownRight } from 'lucide-react';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
 interface Message {
@@ -16,7 +16,7 @@ const QUICK_PROMPTS = [
   "Cara meningkatkan khusyuk sholat",
   "Doa agar dimudahkan urusan",
   "Tips istiqomah baca Al-Qur'an",
-  "Kisah Nabi Muhammad SAW singkat"
+  "Kisah singkat Nabi Muhammad SAW"
 ];
 
 const TanyaAiView: React.FC = () => {
@@ -24,7 +24,7 @@ const TanyaAiView: React.FC = () => {
     { 
       id: 1, 
       role: 'ai', 
-      text: "Assalamualaikum warahmatullah. Saya Asisten Muslim AI. Ada yang bisa saya bantu diskusikan seputar Islam, ibadah, atau nasihat hari ini?",
+      text: "Assalamualaikum warahmatullah. Saya Asisten Muslim AI. Ada yang bisa saya bantu diskusikan seputar Islam, ibadah, atau nasihat bijak hari ini?",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -65,6 +65,7 @@ const TanyaAiView: React.FC = () => {
             }
         };
         recognitionRef.current.onend = () => setIsListening(false);
+        recognitionRef.current.onerror = () => setIsListening(false);
     }
   }, []);
 
@@ -81,14 +82,22 @@ const TanyaAiView: React.FC = () => {
     utterance.lang = 'id-ID';
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
     synthRef.current.speak(utterance);
   };
 
+  const stopSpeaking = () => {
+    if (synthRef.current) synthRef.current.cancel();
+    setIsSpeaking(false);
+  };
+
   const toggleListening = () => {
+    if (!recognitionRef.current) return;
     if (isListening) {
-        recognitionRef.current?.stop();
+        recognitionRef.current.stop();
     } else {
-        recognitionRef.current?.start();
+        stopSpeaking();
+        recognitionRef.current.start();
         setIsListening(true);
     }
   };
@@ -98,11 +107,13 @@ const TanyaAiView: React.FC = () => {
     if (!query.trim() || isLoading) return;
 
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: query, timestamp }]);
+    const userMsgId = Date.now();
+    setMessages(prev => [...prev, { id: userMsgId, role: 'user', text: query, timestamp }]);
     setInputText('');
     setIsLoading(true);
+    stopSpeaking();
 
-    const aiMsgId = Date.now() + 1;
+    const aiMsgId = userMsgId + 1;
     setMessages(prev => [...prev, { id: aiMsgId, role: 'ai', text: '', isStreaming: true, timestamp }]);
 
     try {
@@ -111,8 +122,8 @@ const TanyaAiView: React.FC = () => {
         model: 'gemini-3-flash-preview',
         contents: query,
         config: {
-            systemInstruction: "Anda adalah 'Ustadz Digital' yang bijaksana. Berikan jawaban Islami yang menenangkan, berdasar dalil Al-Qur'an/Hadits jika memungkinkan, dan ramah. Gunakan bahasa Indonesia yang santun. Maksimal 3-4 paragraf per jawaban.",
-            temperature: 0.7,
+            systemInstruction: "Anda adalah 'Ustadz Digital' yang bijaksana, edukatif, dan ramah di aplikasi Muslim Daily. Jawablah setiap pertanyaan dengan nilai-nilai Islami yang moderat dan menyejukkan. Gunakan sapaan hangat seperti 'Saudaraku' atau 'Ananda'. Berikan dalil jika relevan namun tetap ringkas. Gunakan bahasa Indonesia yang santun dan mudah dipahami. Jangan gunakan format markdown yang rumit, berikan teks bersih.",
+            temperature: 0.8,
         }
       });
 
@@ -129,75 +140,116 @@ const TanyaAiView: React.FC = () => {
         if (autoRead) speakText(fullResponse);
       }
     } catch (e) {
-      setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: "Maaf, terjadi gangguan koneksi. Silakan coba lagi.", isStreaming: false } : m));
+      if (isMounted.current) {
+        setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: "Afwan, terjadi gangguan koneksi. Mari kita coba lagi sebentar lagi.", isStreaming: false } : m));
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) setIsLoading(false);
     }
   };
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden bg-transparent">
-      {/* Dynamic Header */}
-      <div className="absolute top-0 left-0 right-0 z-30 p-3 bg-white/10 backdrop-blur-md border-b border-white/10 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#EFFACD] flex items-center justify-center text-[#3B5998]">
-                  <Sparkles size={16} />
+      {/* Dynamic Glass Header */}
+      <div className="absolute top-0 left-0 right-0 z-40 p-3 bg-white/10 backdrop-blur-xl border-b border-white/10 flex justify-between items-center shadow-lg">
+          <div className="flex items-center gap-3">
+              <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-emerald-400 flex items-center justify-center shadow-md border border-white/20">
+                      <Sparkles size={18} className="text-white" />
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-[#3B5998] rounded-full"></div>
               </div>
-              <div>
-                  <h4 className="text-[#EFFACD] text-xs font-bold leading-none">Asisten Muslim AI</h4>
-                  <span className="text-green-300 text-[10px] animate-pulse">Online</span>
+              <div className="flex flex-col">
+                  <h4 className="text-[#EFFACD] text-sm font-bold leading-tight tracking-wide">Ustadz AI</h4>
+                  <span className="text-green-300 text-[10px] uppercase font-bold tracking-tighter opacity-80">Siap Menjawab</span>
               </div>
           </div>
-          <div className="flex gap-2">
-              <button onClick={() => setAutoRead(!autoRead)} className={`p-2 rounded-lg ${autoRead ? 'bg-[#EFFACD] text-[#3B5998]' : 'text-[#EFFACD] bg-white/5'}`}>
-                  {autoRead ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          <div className="flex gap-1.5">
+              <button 
+                onClick={() => setAutoRead(!autoRead)} 
+                className={`p-2.5 rounded-xl transition-all ${autoRead ? 'bg-[#EFFACD] text-[#3B5998]' : 'text-[#EFFACD] bg-white/5 hover:bg-white/10'}`}
+                title="Baca Otomatis"
+              >
+                  {autoRead ? <Volume2 size={18} /> : <VolumeX size={18} />}
               </button>
-              <button onClick={() => setMessages([messages[0]])} className="p-2 text-[#EFFACD] bg-white/5 rounded-lg hover:bg-red-500/20">
-                  <Trash2 size={16} />
+              <button 
+                onClick={() => setMessages([messages[0]])} 
+                className="p-2.5 text-[#EFFACD] bg-white/5 rounded-xl hover:bg-red-500/20 transition-all"
+                title="Hapus Riwayat"
+              >
+                  <Trash2 size={18} />
               </button>
           </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 pt-16 pb-28 space-y-6">
+      {/* Messages Scrolling Area */}
+      <div className="flex-1 overflow-y-auto p-4 pt-20 pb-28 space-y-6">
           {messages.map((msg) => {
               const isUser = msg.role === 'user';
               return (
                   <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-slide-up`}>
-                      <div className={`flex flex-col max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
-                          <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end group`}>
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-sm
-                                  ${isUser ? 'bg-[#EFFACD] text-[#3B5998]' : 'bg-white text-blue-600'}
+                      <div className={`flex flex-col max-w-[88%] ${isUser ? 'items-end' : 'items-start'}`}>
+                          <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end group`}>
+                              {/* Avatar Icon */}
+                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg border
+                                  ${isUser ? 'bg-[#EFFACD] text-[#3B5998] border-white/20' : 'bg-white text-blue-600 border-blue-100'}
                               `}>
-                                  {isUser ? <User size={14} /> : <Sparkles size={14} />}
+                                  {isUser ? <User size={16} /> : <Sparkles size={16} />}
                               </div>
-                              <div className={`p-4 rounded-2xl shadow-xl text-sm relative transition-all
-                                  ${isUser ? 'bg-[#EFFACD] text-[#3B5998] rounded-tr-none' : 'bg-white/95 text-slate-800 rounded-tl-none border border-white/50'}
+                              
+                              {/* Bubble */}
+                              <div className={`p-4 rounded-2xl shadow-xl text-sm relative transition-all duration-300
+                                  ${isUser 
+                                    ? 'bg-gradient-to-br from-[#EFFACD] to-[#dce8b3] text-[#3B5998] rounded-tr-none' 
+                                    : 'bg-white/95 text-slate-800 rounded-tl-none border border-white/50 backdrop-blur-sm'}
                               `}>
-                                  {msg.text || (msg.isStreaming && <div className="flex gap-1 py-1"><div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div><div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></div><div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></div></div>)}
+                                  {msg.text || (msg.isStreaming && (
+                                    <div className="dot-typing px-1 py-1">
+                                        <div className="dot"></div>
+                                        <div className="dot"></div>
+                                        <div className="dot"></div>
+                                    </div>
+                                  ))}
                                   
+                                  {/* Message Tools for AI */}
                                   {!isUser && !msg.isStreaming && (
-                                      <div className="flex gap-3 mt-3 pt-2 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <button onClick={() => speakText(msg.text)} className="text-slate-400 hover:text-blue-600"><Volume2 size={14} /></button>
-                                          <button onClick={() => handleCopy(msg.text, msg.id)} className="text-slate-400 hover:text-blue-600">{copiedId === msg.id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}</button>
-                                          <button className="text-slate-400 hover:text-blue-600"><Share2 size={14} /></button>
+                                      <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                          <button onClick={() => speakText(msg.text)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Dengarkan">
+                                              <Volume2 size={14} />
+                                          </button>
+                                          <button onClick={() => handleCopy(msg.text, msg.id)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Salin">
+                                              {copiedId === msg.id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                                          </button>
+                                          <button className="text-slate-400 hover:text-blue-600 transition-colors" title="Bagikan">
+                                              <Share2 size={14} />
+                                          </button>
                                       </div>
                                   )}
                               </div>
                           </div>
-                          <span className="text-[10px] text-[#EFFACD]/30 mt-1 font-mono">{msg.timestamp}</span>
+                          <span className="text-[10px] text-[#EFFACD]/40 mt-1.5 font-medium px-1 flex items-center gap-1">
+                            {msg.timestamp} {isUser && <Check size={10} />}
+                          </span>
                       </div>
                   </div>
               );
           })}
           
-          {messages.length === 1 && (
-              <div className="mt-4 space-y-2 animate-fade-in">
-                  <p className="text-[#EFFACD]/50 text-[10px] font-bold uppercase tracking-widest px-2 flex items-center gap-2"><MessageSquare size={12}/> Pertanyaan Populer</p>
-                  <div className="flex flex-wrap gap-2">
+          {/* Quick Prompts UI */}
+          {messages.length === 1 && !isLoading && (
+              <div className="mt-8 space-y-3 animate-fade-in px-2">
+                  <p className="text-[#EFFACD]/60 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                      <MessageSquare size={12} /> Topik Sering Ditanyakan
+                  </p>
+                  <div className="flex flex-col gap-2.5">
                       {QUICK_PROMPTS.map((p, i) => (
-                          <button key={i} onClick={() => handleSend(p)} className="bg-white/10 border border-white/10 rounded-full px-4 py-2 text-xs text-[#EFFACD] hover:bg-[#EFFACD] hover:text-[#3B5998] transition-all active:scale-95">
-                              {p}
+                          <button 
+                            key={i} 
+                            onClick={() => handleSend(p)} 
+                            className="bg-white/10 border border-white/10 hover:bg-[#EFFACD] hover:text-[#3B5998] text-[#EFFACD] rounded-xl px-4 py-3 text-xs text-left transition-all active:scale-95 flex items-center justify-between group shadow-sm"
+                          >
+                              <span className="font-medium">{p}</span>
+                              <CornerDownRight size={14} className="opacity-0 group-hover:opacity-40 transition-opacity" />
                           </button>
                       ))}
                   </div>
@@ -206,31 +258,34 @@ const TanyaAiView: React.FC = () => {
           <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Dock */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#3B5998] to-transparent">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center p-2 border border-white/20 focus-within:ring-2 focus-within:ring-[#EFFACD]/30 transition-all shadow-2xl">
+      {/* Premium Input Dock */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#3B5998] via-[#3B5998]/90 to-transparent">
+          <div className="bg-white/15 backdrop-blur-2xl rounded-3xl flex items-center p-2 border border-white/25 focus-within:border-[#EFFACD] focus-within:ring-2 focus-within:ring-[#EFFACD]/20 transition-all shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
               <button 
                   onClick={toggleListening}
-                  className={`p-3 rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-[#EFFACD] hover:bg-white/10'}`}
+                  className={`p-4 rounded-2xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse shadow-lg' : 'text-[#EFFACD] hover:bg-white/10'}`}
               >
-                  {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                  {isListening ? <MicOff size={22} /> : <Mic size={22} />}
               </button>
+              
               <input 
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder={isListening ? "Mendengarkan..." : "Ketik pesan..."}
-                  className="flex-1 bg-transparent px-3 py-2 text-[#EFFACD] placeholder-[#EFFACD]/40 focus:outline-none text-sm font-medium"
+                  placeholder={isListening ? "Mendengarkan ucapan Anda..." : "Tanya seputar Islam..."}
+                  className="flex-1 bg-transparent px-3 py-3 text-white placeholder-[#EFFACD]/40 focus:outline-none text-sm font-medium"
               />
+              
               <button 
-                  onClick={() => isSpeaking ? synthRef.current?.cancel() : handleSend()}
+                  onClick={() => isSpeaking ? stopSpeaking() : handleSend()}
                   disabled={isLoading || (!inputText.trim() && !isSpeaking)}
-                  className={`p-3 rounded-xl transition-all ${inputText.trim() || isSpeaking ? 'bg-[#EFFACD] text-[#3B5998] shadow-lg' : 'text-[#EFFACD]/20'}`}
+                  className={`p-4 rounded-2xl transition-all ${isSpeaking ? 'bg-orange-500 text-white animate-pulse' : (inputText.trim() ? 'bg-[#EFFACD] text-[#3B5998] shadow-lg' : 'text-[#EFFACD]/20')}`}
               >
-                  {isSpeaking ? <StopCircle size={20} className="animate-spin" /> : <Send size={20} />}
+                  {isSpeaking ? <StopCircle size={22} /> : <Send size={22} />}
               </button>
           </div>
+          {isListening && <div className="text-center mt-2 text-[10px] text-white/40 uppercase tracking-widest font-bold">Tekan icon microphone untuk berhenti</div>}
       </div>
     </div>
   );
