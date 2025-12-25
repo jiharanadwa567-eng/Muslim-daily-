@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { BookOpen, Headphones, GraduationCap, Clock, HeartHandshake, Compass, Settings, MessageCircleQuestion } from 'lucide-react';
+import { BookOpen, Headphones, GraduationCap, Clock, HeartHandshake, Compass, Settings } from 'lucide-react';
 import { ViewState } from '../../types';
 
 interface MainMenuProps {
@@ -57,12 +58,6 @@ const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
             subtitle="صوت"
             icon={<Headphones size={28} />} 
             onClick={() => onNavigate('QURAN_MP3')} 
-            />
-            <MenuButton 
-            title="Tanya AI" 
-            subtitle="سؤال"
-            icon={<MessageCircleQuestion size={28} />} 
-            onClick={() => onNavigate('TANYA_AI')} 
             />
             <MenuButton 
             title="Sholat" 

@@ -2,7 +2,6 @@
   "name": "Muslim Daily App",
   "description": "A comprehensive Islamic application featuring Quran, Tajwid learning, Prayer times, Daily Duas, and Qibla direction.",
   "requestFramePermissions": [
-    "geolocation",
-    "microphone"
+    "geolocation"
   ]
 }

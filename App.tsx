@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import Layout from './components/Layout';
 import SplashScreen from './components/SplashScreen';
@@ -9,7 +10,6 @@ import SholatView from './components/features/SholatView';
 import DoaView from './components/features/DoaView';
 import KiblatView from './components/features/KiblatView';
 import SettingsView from './components/features/SettingsView';
-import TanyaAiView from './components/features/TanyaAiView';
 import GlobalPlayer from './components/GlobalPlayer';
 import { ViewState, Surah, DuaItem } from './types';
 
@@ -99,9 +99,6 @@ const App: React.FC = () => {
 
   const handleAudioEnded = () => {
     setIsAudioPlaying(false);
-    // Optional: Auto play next? For now, just stop.
-    // setActiveAudioSurah(null); // Keep player open but stopped, or close it?
-    // Let's keep it open to allow replay.
   };
 
   // Helper to map view state to Header Title
@@ -113,9 +110,8 @@ const App: React.FC = () => {
       case 'SHOLAT': return 'Jadwal Sholat';
       case 'DOA': return 'DO\'A-DO\'A SEHARI-HARI';
       case 'KIBLAT': return 'ARAH KIBLAT';
-      case 'TANYA_AI': return 'TANYA AI MUSLIM';
       case 'SETTINGS': return 'PENGATURAN';
-      default: return ''; // Empty for Menu (handled internally)
+      default: return ''; 
     }
   };
 
@@ -197,7 +193,6 @@ const App: React.FC = () => {
     showSettings: true, 
     onSettings: goSettings,
     darkMode: darkMode,
-    // Inject Global Player here
     audioPlayer: activeAudioSurah ? (
         <GlobalPlayer 
             surah={activeAudioSurah}
@@ -227,7 +222,6 @@ const App: React.FC = () => {
           mode="TEXT" 
           selectedSurah={selectedSurah} 
           onSelectSurah={setSelectedSurah}
-          // Pass Global Audio Props
           activeAudioSurah={activeAudioSurah}
           isAudioPlaying={isAudioPlaying}
           onPlaySurah={handlePlaySurah}
@@ -239,7 +233,6 @@ const App: React.FC = () => {
           mode="MP3" 
           selectedSurah={selectedSurah} 
           onSelectSurah={setSelectedSurah} 
-          // Pass Global Audio Props
           activeAudioSurah={activeAudioSurah}
           isAudioPlaying={isAudioPlaying}
           onPlaySurah={handlePlaySurah}
@@ -264,8 +257,6 @@ const App: React.FC = () => {
       )}
       
       {view === 'KIBLAT' && <KiblatView />}
-
-      {view === 'TANYA_AI' && <TanyaAiView />}
 
       {view === 'SETTINGS' && (
         <SettingsView 
