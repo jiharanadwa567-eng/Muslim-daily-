@@ -19,6 +19,14 @@ const App: React.FC = () => {
   // -- State Settings --
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [notifEnabled, setNotifEnabled] = useState<boolean>(true);
+  const [userName, setUserName] = useState<string>(() => {
+    return localStorage.getItem('muslim_daily_user_name') || 'Saudaraku';
+  });
+
+  // Simpan nama ke localStorage setiap kali berubah
+  useEffect(() => {
+    localStorage.setItem('muslim_daily_user_name', userName);
+  }, [userName]);
 
   // -- State Navigasi Hierarkis --
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
@@ -168,11 +176,9 @@ const App: React.FC = () => {
   // -- HARDWARE BACK BUTTON HANDLER (IMPROVED) --
   useEffect(() => {
     const onPopState = (event: PopStateEvent) => {
-      // Jika di state terdalam, handleBack akan melangkah satu tingkat ke belakang
       if (selectedDua || selectedSurah || selectedDuaCategory || selectedTajwidCategory || (view !== 'MENU' && view !== 'LOGIN')) {
         event.preventDefault();
         handleBack();
-        // Pertahankan intercept jika masih di dalam fitur
         window.history.pushState({ internal: true }, '');
       }
     };
@@ -220,7 +226,7 @@ const App: React.FC = () => {
       />
 
       <div key={view} className="animate-page-in h-full flex flex-col">
-          {view === 'MENU' && <MainMenu onNavigate={handleNavigate} />}
+          {view === 'MENU' && <MainMenu onNavigate={handleNavigate} userName={userName} />}
           
           {view === 'QURAN_TEXT' && (
             <QuranView 
@@ -284,6 +290,8 @@ const App: React.FC = () => {
               setDarkMode={setDarkMode}
               notifEnabled={notifEnabled}
               setNotifEnabled={setNotifEnabled}
+              userName={userName}
+              setUserName={setUserName}
             />
           )}
       </div>

@@ -1,24 +1,53 @@
+
 import React from 'react';
-import { Bell, Info, Moon, Code, ShieldCheck } from 'lucide-react';
+import { Bell, Info, Moon, Code, ShieldCheck, UserCircle } from 'lucide-react';
 
 interface SettingsViewProps {
   darkMode: boolean;
   setDarkMode: (val: boolean) => void;
   notifEnabled: boolean;
   setNotifEnabled: (val: boolean) => void;
+  userName: string;
+  setUserName: (val: string) => void;
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({ 
   darkMode, 
   setDarkMode, 
   notifEnabled, 
-  setNotifEnabled 
+  setNotifEnabled,
+  userName,
+  setUserName
 }) => {
     return (
         <div className="w-full flex flex-col h-full animate-fade-in-up space-y-4 pt-2">
+            
+            {/* Group 0: Profile / Identity */}
+            <div className={`rounded-2xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
+                <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-widest border-b border-current pb-2 opacity-40">Identitas Diri</h3>
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className={`p-2.5 rounded-xl shadow-inner ${darkMode ? 'bg-white/10' : 'bg-[#3B5998]/10'}`}>
+                            <UserCircle size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <label className="text-[10px] font-bold uppercase tracking-tighter opacity-60 block mb-1">Nama Panggilan</label>
+                            <input 
+                                type="text" 
+                                value={userName}
+                                onChange={(e) => setUserName(e.target.value.substring(0, 20))}
+                                placeholder="Masukkan nama..."
+                                className={`w-full bg-transparent border-b-2 border-current focus:outline-none py-1 font-bold text-lg transition-all focus:border-white ${darkMode ? 'placeholder-[#EFFACD]/30' : 'placeholder-[#3B5998]/30'}`}
+                            />
+                        </div>
+                    </div>
+                    <p className="text-[10px] opacity-50 italic">Nama ini akan digunakan untuk menyapa Anda di halaman utama.</p>
+                </div>
+            </div>
+
             {/* Group 1: General */}
-            <div className={`rounded-xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
-                <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-wider border-b border-current pb-2 opacity-40">Umum</h3>
+            <div className={`rounded-2xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
+                <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-widest border-b border-current pb-2 opacity-40">Kustomisasi</h3>
                 <div className="space-y-5">
                     {/* Toggle Notifikasi */}
                     <div 
@@ -57,8 +86,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {/* Group 2: About */}
-            <div className={`rounded-xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
-                <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-wider border-b border-current pb-2 opacity-40">Tentang Aplikasi</h3>
+            <div className={`rounded-2xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
+                <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-widest border-b border-current pb-2 opacity-40">Tentang Aplikasi</h3>
                 <div className="space-y-5">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -67,7 +96,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                             </div>
                             <span className="font-semibold text-sm">Versi Aplikasi</span>
                         </div>
-                        <span className="text-sm font-bold opacity-60 px-2 py-1 rounded bg-black/5">v1.0.0</span>
+                        <span className="text-sm font-bold opacity-60 px-2 py-1 rounded bg-black/5">v1.1.0</span>
                     </div>
                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">

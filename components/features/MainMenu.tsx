@@ -5,6 +5,7 @@ import { ViewState } from '../../types';
 
 interface MainMenuProps {
   onNavigate: (view: ViewState) => void;
+  userName: string;
 }
 
 const MenuButton: React.FC<{
@@ -27,7 +28,7 @@ const MenuButton: React.FC<{
   </button>
 );
 
-const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
+const MainMenu: React.FC<MainMenuProps> = ({ onNavigate, userName }) => {
   return (
     <div className="flex-1 flex flex-col w-full relative">
         {/* Enhanced Header */}
@@ -37,7 +38,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                     <Sparkles size={14} className="text-[#EFFACD] animate-pulse" />
                     <h1 className="text-[#EFFACD] text-2xl font-black tracking-tighter drop-shadow-lg">Muslim Daily</h1>
                 </div>
-                <p className="text-[#EFFACD]/70 text-xs font-medium tracking-wide">Assalamualaikum, Saudaraku</p>
+                <p className="text-[#EFFACD]/70 text-xs font-medium tracking-wide">Assalamualaikum, {userName}</p>
             </div>
             <button 
                 onClick={() => onNavigate('SETTINGS')}
