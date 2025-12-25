@@ -40,7 +40,6 @@ const App: React.FC = () => {
   const handlePlaySurah = (surah: Surah) => {
     if (!audioRef.current) return;
 
-    // Jika surah yang sama diklik
     if (activeAudioSurah?.number === surah.number) {
         if (isAudioPlaying) {
             audioRef.current.pause();
@@ -52,7 +51,6 @@ const App: React.FC = () => {
         return;
     }
 
-    // Jika surah baru
     const surahPad = surah.number.toString().padStart(3, '0');
     const audioUrl = `https://download.quranicaudio.com/quran/mishaari_raashid_al_3afaasee/${surahPad}.mp3`;
     
@@ -117,19 +115,17 @@ const App: React.FC = () => {
 
   // Navigasi ke Fitur Utama
   const handleNavigate = (newView: ViewState) => {
-    // Khusus Settings: Simpan view sebelumnya & JANGAN reset state internal
     if (newView === 'SETTINGS') {
         setPreviousView(view);
-        setView('SETTINGS');
-        return;
+    } else {
+        setSelectedSurah(null);
+        setSelectedDuaCategory(null);
+        setSelectedDua(null);
+        setSelectedTajwidCategory(null);
     }
-
-    // Navigasi normal: Reset state detail
-    setSelectedSurah(null);
-    setSelectedDuaCategory(null);
-    setSelectedDua(null);
-    setSelectedTajwidCategory(null);
     setView(newView);
+    // Push state ke browser history agar tombol back device ter-intersepsi
+    window.history.pushState({ internal: true }, '');
   };
 
   const goHome = () => handleNavigate('MENU');
@@ -137,43 +133,64 @@ const App: React.FC = () => {
 
   // Logika Tombol Kembali (Back Stack)
   const handleBack = () => {
-    // 0. Jika sedang di Settings -> Kembali ke View Sebelumnya
     if (view === 'SETTINGS') {
-        if (previousView) {
-            setView(previousView);
-        } else {
-            setView('MENU');
-        }
+        setView(previousView || 'MENU');
         return;
     }
 
-    // 1. Jika sedang membuka Detail Doa -> Kembali ke List Doa
     if (selectedDua) {
       setSelectedDua(null);
       return;
     }
-    // 2. Jika sedang membuka Kategori Doa -> Kembali ke Kategori
     if (selectedDuaCategory) {
       setSelectedDuaCategory(null);
       return;
     }
-    // 3. Jika sedang membaca Surat (Quran) -> Kembali ke Daftar Surat
     if (selectedSurah) {
       setSelectedSurah(null);
       return;
     }
-    // 4. Jika sedang membaca Detail Tajwid -> Kembali ke Kategori Tajwid
     if (selectedTajwidCategory) {
       setSelectedTajwidCategory(null);
       return;
     }
 
-    // 5. Jika sedang di Level Fitur (selain Menu) -> Kembali ke Menu Utama
     if (view !== 'MENU' && view !== 'LOGIN' && view !== 'SPLASH') {
       setView('MENU');
       return;
     }
   };
+
+  // -- HARDWARE BACK BUTTON HANDLER --
+  useEffect(() => {
+    const onPopState = (event: PopStateEvent) => {
+      // Jika kita berada di halaman utama (MENU atau LOGIN), biarkan perilaku default (keluar app)
+      // Tapi jika kita berada di sub-halaman, jalankan handleBack
+      if (view !== 'MENU' && view !== 'LOGIN' && view !== 'SPLASH') {
+        event.preventDefault();
+        handleBack();
+        // Push state lagi agar tombol back berikutnya tetap bisa ditangani
+        window.history.pushState({ internal: true }, '');
+      } else if (view === 'MENU' && (selectedSurah || selectedDua || selectedDuaCategory || selectedTajwidCategory)) {
+        event.preventDefault();
+        handleBack();
+        window.history.pushState({ internal: true }, '');
+      }
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [view, selectedSurah, selectedDua, selectedDuaCategory, selectedTajwidCategory, previousView]);
+
+  // Efek untuk menangani pushState awal saat masuk ke fitur dari Menu Utama
+  useEffect(() => {
+    if (view !== 'SPLASH' && view !== 'LOGIN' && view !== 'MENU') {
+        // Hanya push jika belum ada state internal (mencegah loop)
+        if (!window.history.state || !window.history.state.internal) {
+            window.history.pushState({ internal: true }, '');
+        }
+    }
+  }, [view]);
 
   if (view === 'SPLASH') {
     return <SplashScreen onFinish={() => setView('LOGIN')} />;
@@ -183,7 +200,6 @@ const App: React.FC = () => {
     return <LoginScreen onLogin={() => setView('MENU')} />;
   }
 
-  // Common Layout Props
   const layoutProps = {
     title: view === 'MENU' ? undefined : getTitle(view), 
     showBack: view !== 'MENU', 
@@ -207,7 +223,6 @@ const App: React.FC = () => {
 
   return (
     <Layout {...layoutProps}>
-      {/* Hidden Global Audio Element */}
       <audio 
         ref={audioRef}
         onTimeUpdate={handleAudioTimeUpdate}
@@ -221,7 +236,10 @@ const App: React.FC = () => {
         <QuranView 
           mode="TEXT" 
           selectedSurah={selectedSurah} 
-          onSelectSurah={setSelectedSurah}
+          onSelectSurah={(s) => {
+              setSelectedSurah(s);
+              if (s) window.history.pushState({ internal: true }, '');
+          }}
           activeAudioSurah={activeAudioSurah}
           isAudioPlaying={isAudioPlaying}
           onPlaySurah={handlePlaySurah}
@@ -232,7 +250,10 @@ const App: React.FC = () => {
         <QuranView 
           mode="MP3" 
           selectedSurah={selectedSurah} 
-          onSelectSurah={setSelectedSurah} 
+          onSelectSurah={(s) => {
+              setSelectedSurah(s);
+              if (s) window.history.pushState({ internal: true }, '');
+          }} 
           activeAudioSurah={activeAudioSurah}
           isAudioPlaying={isAudioPlaying}
           onPlaySurah={handlePlaySurah}
@@ -242,7 +263,10 @@ const App: React.FC = () => {
       {view === 'TAJWID' && (
         <TajwidView 
           selectedCategory={selectedTajwidCategory}
-          onSelectCategory={setSelectedTajwidCategory}
+          onSelectCategory={(c) => {
+              setSelectedTajwidCategory(c);
+              if (c) window.history.pushState({ internal: true }, '');
+          }}
         />
       )}
       {view === 'SHOLAT' && <SholatView />}
@@ -250,9 +274,15 @@ const App: React.FC = () => {
       {view === 'DOA' && (
         <DoaView 
           selectedCategory={selectedDuaCategory}
-          onSelectCategory={setSelectedDuaCategory}
+          onSelectCategory={(c) => {
+              setSelectedDuaCategory(c);
+              if (c) window.history.pushState({ internal: true }, '');
+          }}
           selectedDua={selectedDua}
-          onSelectDua={setSelectedDua}
+          onSelectDua={(d) => {
+              setSelectedDua(d);
+              if (d) window.history.pushState({ internal: true }, '');
+          }}
         />
       )}
       
