@@ -9,6 +9,7 @@ import TajwidView from './components/features/TajwidView';
 import SholatView from './components/features/SholatView';
 import DoaView from './components/features/DoaView';
 import KiblatView from './components/features/KiblatView';
+import TanyaAiView from './components/features/TanyaAiView';
 import SettingsView from './components/features/SettingsView';
 import GlobalPlayer from './components/GlobalPlayer';
 import { ViewState, Surah, DuaItem } from './types';
@@ -116,6 +117,7 @@ const App: React.FC = () => {
       case 'SHOLAT': return 'Jadwal Sholat';
       case 'DOA': return 'Kumpulan Doa';
       case 'KIBLAT': return 'Arah Kiblat';
+      case 'TANYA_AI': return 'Tanya AI (Gemini)';
       case 'SETTINGS': return 'Pengaturan';
       default: return ''; 
     }
@@ -173,7 +175,7 @@ const App: React.FC = () => {
     }
   };
 
-  // -- HARDWARE BACK BUTTON HANDLER (IMPROVED) --
+  // -- HARDWARE BACK BUTTON HANDLER --
   useEffect(() => {
     const onPopState = (event: PopStateEvent) => {
       if (selectedDua || selectedSurah || selectedDuaCategory || selectedTajwidCategory || (view !== 'MENU' && view !== 'LOGIN')) {
@@ -283,6 +285,7 @@ const App: React.FC = () => {
           )}
           
           {view === 'KIBLAT' && <KiblatView />}
+          {view === 'TANYA_AI' && <TanyaAiView />}
 
           {view === 'SETTINGS' && (
             <SettingsView 

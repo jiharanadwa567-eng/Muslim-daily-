@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Sparkles, Trash2, Mic, MicOff, Volume2, VolumeX, StopCircle, MessageSquare, Copy, Check, Share2, CornerDownRight, AlertCircle } from 'lucide-react';
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { Send, User, Sparkles, Trash2, Mic, MicOff, Volume2, VolumeX, StopCircle, Copy, Check, AlertCircle } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
 
 interface Message {
   id: number;
@@ -11,20 +11,15 @@ interface Message {
   timestamp: string;
 }
 
-const QUICK_PROMPTS = [
-  "Apa hikmah Sholat Tahajud?",
-  "Cara meningkatkan khusyuk sholat",
-  "Doa agar dimudahkan urusan",
-  "Tips istiqomah baca Al-Qur'an",
-  "Kisah singkat Nabi Muhammad SAW"
-];
-
 const TanyaAiView: React.FC = () => {
+  // Ambil nama pengguna dari localStorage untuk sapaan awal
+  const userName = localStorage.getItem('muslim_daily_user_name') || 'Saudaraku';
+
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: 1, 
       role: 'ai', 
-      text: "Assalamualaikum warahmatullah. Saya Asisten Muslim AI. Ada yang bisa saya bantu diskusikan seputar Islam, ibadah, atau nasihat bijak hari ini?",
+      text: `Assalamualaikum warahmatullah, ${userName}. Saya Asisten Muslim AI. Ada yang bisa saya bantu diskusikan seputar Islam, ibadah, atau nasihat bijak hari ini?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -51,11 +46,11 @@ const TanyaAiView: React.FC = () => {
     return () => { isMounted.current = false; };
   }, [messages, isLoading]);
 
-  // Speech Recognition Setup
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        recognitionRef.current = new SpeechRecognition();
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitCompassHeading;
+    if ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) {
+        const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        recognitionRef.current = new SpeechRec();
         recognitionRef.current.continuous = false;
         recognitionRef.current.lang = 'id-ID';
         recognitionRef.current.onresult = (event: any) => {
@@ -120,14 +115,14 @@ const TanyaAiView: React.FC = () => {
     setMessages(prev => [...prev, { id: aiMsgId, role: 'ai', text: '', isStreaming: true, timestamp }]);
 
     try {
-      // Inisialisasi API Gemini secara langsung dengan API KEY lingkungan
+      // Inisialisasi GoogleGenAI tepat sebelum pemanggilan untuk memastikan API Key terbaru digunakan
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const responseStream = await ai.models.generateContentStream({
         model: 'gemini-3-flash-preview',
         contents: query,
         config: {
-            systemInstruction: "Anda adalah 'Ustadz Digital' yang bijaksana, edukatif, dan ramah di aplikasi Muslim Daily. Jawablah setiap pertanyaan dengan nilai-nilai Islami yang moderat dan menyejukkan. Gunakan sapaan hangat seperti 'Saudaraku' atau 'Ananda'. Berikan dalil Al-Qur'an atau Hadits jika relevan namun tetap ringkas. Gunakan bahasa Indonesia yang santun. Berikan teks bersih tanpa format markdown yang berat.",
+            systemInstruction: `Anda adalah 'Ustadz Digital' yang bijaksana dan ramah di aplikasi Muslim Daily. Jawablah setiap pertanyaan dengan nilai-nilai Islami yang moderat. Sapa pengguna dengan nama '${userName}'. Berikan dalil Al-Qur'an atau Hadits jika relevan secara ringkas. Gunakan bahasa Indonesia yang santun. Hindari format markdown yang berlebihan.`,
             temperature: 0.7,
             topP: 0.95,
             topK: 40
@@ -148,11 +143,24 @@ const TanyaAiView: React.FC = () => {
       }
     } catch (e: any) {
       console.error("Gemini API Error:", e);
+      
       if (isMounted.current) {
-        setConnectionError("Gagal terhubung ke layanan AI. Pastikan koneksi internet stabil.");
+        const errorMessage = e.message || "";
+        
+        // Penanganan error 404 (Requested entity was not found)
+        if (errorMessage.includes("Requested entity was not found")) {
+            setConnectionError("Layanan AI tidak ditemukan atau API Key tidak valid. Mohon pilih proyek API Key yang aktif.");
+            // Pemicu dialog pemilihan kunci sesuai pedoman
+            if (window.aistudio?.openSelectKey) {
+                window.aistudio.openSelectKey();
+            }
+        } else {
+            setConnectionError("Gagal terhubung ke layanan AI. Pastikan API Key Anda valid dan aktif.");
+        }
+
         setMessages(prev => prev.map(m => m.id === aiMsgId ? { 
             ...m, 
-            text: "Afwan, sepertinya ada sedikit kendala koneksi dengan pusat data kami. Mari kita coba lagi sebentar lagi.", 
+            text: "Afwan, sepertinya ada kendala teknis saat menghubungi layanan AI kami. Mohon periksa koneksi atau pengaturan API Key Anda.", 
             isStreaming: false 
         } : m));
       }
@@ -163,7 +171,7 @@ const TanyaAiView: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden bg-transparent">
-      {/* Dynamic Glass Header */}
+      {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-40 p-3 bg-white/10 backdrop-blur-xl border-b border-white/10 flex justify-between items-center shadow-lg">
           <div className="flex items-center gap-3">
               <div className="relative">
@@ -173,8 +181,8 @@ const TanyaAiView: React.FC = () => {
                   <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-[#3B5998] rounded-full"></div>
               </div>
               <div className="flex flex-col">
-                  <h4 className="text-[#EFFACD] text-sm font-bold leading-tight tracking-wide">Asisten AI Terhubung</h4>
-                  <span className="text-green-300 text-[10px] uppercase font-bold tracking-tighter opacity-80">Aktif & Responsif</span>
+                  <h4 className="text-[#EFFACD] text-sm font-bold leading-tight tracking-wide">Asisten AI (Gemini 3)</h4>
+                  <span className="text-green-300 text-[10px] uppercase font-bold tracking-tighter opacity-80">Online & Siap Membantu</span>
               </div>
           </div>
           <div className="flex gap-1.5">
@@ -188,14 +196,14 @@ const TanyaAiView: React.FC = () => {
               <button 
                 onClick={() => setMessages([messages[0]])} 
                 className="p-2.5 text-[#EFFACD] bg-white/5 rounded-xl hover:bg-red-500/20 transition-all"
-                title="Hapus Riwayat"
+                title="Bersihkan Chat"
               >
                   <Trash2 size={18} />
               </button>
           </div>
       </div>
 
-      {/* Messages Scrolling Area */}
+      {/* Area Pesan */}
       <div className="flex-1 overflow-y-auto p-4 pt-20 pb-28 space-y-6 custom-scrollbar">
           {connectionError && (
               <div className="bg-red-500/20 border border-red-500/50 p-3 rounded-xl flex items-center gap-3 text-red-100 text-xs animate-fade-in">
@@ -215,88 +223,54 @@ const TanyaAiView: React.FC = () => {
                               `}>
                                   {isUser ? <User size={16} /> : <Sparkles size={16} />}
                               </div>
-                              
-                              <div className={`p-4 rounded-2xl shadow-xl text-sm relative transition-all duration-300
+                              <div className={`p-4 rounded-2xl shadow-xl text-sm relative
                                   ${isUser 
                                     ? 'bg-gradient-to-br from-[#EFFACD] to-[#dce8b3] text-[#3B5998] rounded-tr-none' 
                                     : 'bg-white/95 text-slate-800 rounded-tl-none border border-white/50 backdrop-blur-sm'}
                               `}>
-                                  {msg.text || (msg.isStreaming && (
-                                    <div className="dot-typing px-1 py-1">
-                                        <div className="dot"></div>
-                                        <div className="dot"></div>
-                                        <div className="dot"></div>
-                                    </div>
-                                  ))}
-                                  
+                                  {msg.text || (msg.isStreaming && <div className="animate-pulse">Mengetik...</div>)}
                                   {!isUser && !msg.isStreaming && (
-                                      <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                          <button onClick={() => speakText(msg.text)} className="text-slate-400 hover:text-blue-600 transition-colors">
+                                      <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button onClick={() => speakText(msg.text)} className="text-slate-400 hover:text-blue-600">
                                               <Volume2 size={14} />
                                           </button>
-                                          <button onClick={() => handleCopy(msg.text, msg.id)} className="text-slate-400 hover:text-blue-600 transition-colors">
+                                          <button onClick={() => handleCopy(msg.text, msg.id)} className="text-slate-400 hover:text-blue-600">
                                               {copiedId === msg.id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                                          </button>
-                                          <button className="text-slate-400 hover:text-blue-600 transition-colors">
-                                              <Share2 size={14} />
                                           </button>
                                       </div>
                                   )}
                               </div>
                           </div>
-                          <span className="text-[10px] text-[#EFFACD]/40 mt-1.5 font-medium px-1">
-                            {msg.timestamp}
-                          </span>
+                          <span className="text-[10px] text-[#EFFACD]/40 mt-1.5 font-medium px-1">{msg.timestamp}</span>
                       </div>
                   </div>
               );
           })}
           
-          {messages.length === 1 && !isLoading && (
-              <div className="mt-8 space-y-3 animate-fade-in px-2">
-                  <p className="text-[#EFFACD]/60 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                      <MessageSquare size={12} /> Ajukan Pertanyaan Berikut
-                  </p>
-                  <div className="flex flex-col gap-2.5">
-                      {QUICK_PROMPTS.map((p, i) => (
-                          <button 
-                            key={i} 
-                            onClick={() => handleSend(p)} 
-                            className="bg-white/10 border border-white/10 hover:bg-[#EFFACD] hover:text-[#3B5998] text-[#EFFACD] rounded-xl px-4 py-3 text-xs text-left transition-all active:scale-95 flex items-center justify-between group shadow-sm"
-                          >
-                              <span className="font-medium">{p}</span>
-                              <CornerDownRight size={14} className="opacity-0 group-hover:opacity-40 transition-opacity" />
-                          </button>
-                      ))}
-                  </div>
-              </div>
-          )}
           <div ref={messagesEndRef} />
       </div>
 
-      {/* Premium Input Dock */}
+      {/* Dock Input */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#3B5998] via-[#3B5998]/90 to-transparent">
-          <div className="bg-white/15 backdrop-blur-2xl rounded-3xl flex items-center p-2 border border-white/25 focus-within:border-[#EFFACD] focus-within:ring-2 focus-within:ring-[#EFFACD]/20 transition-all shadow-2xl">
+          <div className="bg-white/15 backdrop-blur-2xl rounded-3xl flex items-center p-2 border border-white/25 shadow-2xl">
               <button 
                   onClick={toggleListening}
-                  className={`p-4 rounded-2xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse shadow-lg' : 'text-[#EFFACD] hover:bg-white/10'}`}
+                  className={`p-4 rounded-2xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-[#EFFACD] hover:bg-white/10'}`}
               >
                   {isListening ? <MicOff size={22} /> : <Mic size={22} />}
               </button>
-              
               <input 
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder={isListening ? "Mendengarkan suara Anda..." : "Tulis pertanyaan Anda..."}
+                  placeholder={isListening ? "Mendengarkan..." : "Tanya seputar Islam..."}
                   className="flex-1 bg-transparent px-3 py-3 text-white placeholder-[#EFFACD]/40 focus:outline-none text-sm font-medium"
               />
-              
               <button 
                   onClick={() => isSpeaking ? stopSpeaking() : handleSend()}
                   disabled={isLoading || (!inputText.trim() && !isSpeaking)}
-                  className={`p-4 rounded-2xl transition-all ${isSpeaking ? 'bg-orange-500 text-white animate-pulse' : (inputText.trim() ? 'bg-[#EFFACD] text-[#3B5998] shadow-lg' : 'text-[#EFFACD]/20')}`}
+                  className={`p-4 rounded-2xl transition-all ${isSpeaking ? 'bg-orange-500 text-white animate-pulse' : (inputText.trim() ? 'bg-[#EFFACD] text-[#3B5998]' : 'text-[#EFFACD]/20')}`}
               >
                   {isSpeaking ? <StopCircle size={22} /> : <Send size={22} />}
               </button>

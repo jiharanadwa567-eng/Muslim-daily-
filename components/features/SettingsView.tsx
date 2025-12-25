@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bell, Info, Moon, Code, ShieldCheck, UserCircle } from 'lucide-react';
+import { Bell, Info, Moon, Code, UserCircle } from 'lucide-react';
 
 interface SettingsViewProps {
   darkMode: boolean;
@@ -20,7 +20,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   setUserName
 }) => {
     return (
-        <div className="w-full flex flex-col h-full animate-fade-in-up space-y-4 pt-2">
+        <div className="w-full flex flex-col h-full animate-fade-in-up space-y-4 pt-2 pb-10 overflow-y-auto custom-scrollbar">
             
             {/* Group 0: Profile / Identity */}
             <div className={`rounded-2xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
@@ -41,7 +41,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                             />
                         </div>
                     </div>
-                    <p className="text-[10px] opacity-50 italic">Nama ini akan digunakan untuk menyapa Anda di halaman utama.</p>
+                    <p className="text-[10px] opacity-50 italic">Nama ini digunakan untuk menyapa Anda di menu utama dan fitur Tanya AI.</p>
                 </div>
             </div>
 
@@ -60,7 +60,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                             </div>
                             <span className="font-semibold text-sm">Notifikasi Adzan</span>
                         </div>
-                        {/* Toggle Switch */}
                         <div className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${notifEnabled ? (darkMode ? 'bg-[#EFFACD]' : 'bg-[#3B5998]') : 'bg-gray-300'}`}>
                             <div className={`w-4 h-4 rounded-full absolute top-1 shadow-sm transition-all ${notifEnabled ? 'right-1' : 'left-1'} ${notifEnabled ? (darkMode ? 'bg-[#3B5998]' : 'bg-[#EFFACD]') : 'bg-white'}`}></div>
                         </div>
@@ -77,7 +76,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                             </div>
                             <span className="font-semibold text-sm">Mode Gelap</span>
                         </div>
-                        {/* Toggle Switch */}
                         <div className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${darkMode ? (darkMode ? 'bg-[#EFFACD]' : 'bg-[#3B5998]') : 'bg-gray-300'}`}>
                             <div className={`w-4 h-4 rounded-full absolute top-1 shadow-sm transition-all ${darkMode ? 'right-1' : 'left-1'} ${darkMode ? (darkMode ? 'bg-[#3B5998]' : 'bg-[#EFFACD]') : 'bg-white'}`}></div>
                         </div>
@@ -96,7 +94,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                             </div>
                             <span className="font-semibold text-sm">Versi Aplikasi</span>
                         </div>
-                        <span className="text-sm font-bold opacity-60 px-2 py-1 rounded bg-black/5">v1.1.0</span>
+                        <span className="text-sm font-bold opacity-60 px-2 py-1 rounded bg-black/5">v1.3.0</span>
                     </div>
                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -107,18 +105,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                         </div>
                         <span className="text-sm font-bold opacity-60">Muslim Daily Team</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
-                                <ShieldCheck size={20} />
-                            </div>
-                            <span className="font-semibold text-sm">Kebijakan Privasi</span>
-                        </div>
-                    </div>
                 </div>
             </div>
             
-            <div className="flex-1 flex flex-col justify-end items-center pb-6 opacity-40">
+            <div className="flex flex-col justify-end items-center py-6 opacity-40 shrink-0">
                 <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center mb-2 ${darkMode ? 'border-[#2D3748] text-[#2D3748]' : 'border-[#EFFACD] text-[#EFFACD]'}`}>
                     <span className="font-arabic text-xl">القرآن</span>
                 </div>
