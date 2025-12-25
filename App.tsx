@@ -26,7 +26,7 @@ const App: React.FC = () => {
   const [selectedDua, setSelectedDua] = useState<DuaItem | null>(null);
   const [selectedTajwidCategory, setSelectedTajwidCategory] = useState<string | null>(null);
 
-  // -- State History Navigasi (untuk Settings) --
+  // -- State History Navigasi --
   const [previousView, setPreviousView] = useState<ViewState | null>(null);
 
   // -- GLOBAL AUDIO STATE --
@@ -102,13 +102,13 @@ const App: React.FC = () => {
   // Helper to map view state to Header Title
   const getTitle = (v: ViewState) => {
     switch (v) {
-      case 'QURAN_TEXT': return 'ALQURAN TERJEMAH';
-      case 'QURAN_MP3': return 'ALQURAN MP3';
-      case 'TAJWID': return 'PEMBELAJARAN TAJWID';
+      case 'QURAN_TEXT': return 'Al-Qur\'an Terjemah';
+      case 'QURAN_MP3': return 'Murottal Al-Qur\'an';
+      case 'TAJWID': return 'Ilmu Tajwid';
       case 'SHOLAT': return 'Jadwal Sholat';
-      case 'DOA': return 'DO\'A-DO\'A SEHARI-HARI';
-      case 'KIBLAT': return 'ARAH KIBLAT';
-      case 'SETTINGS': return 'PENGATURAN';
+      case 'DOA': return 'Kumpulan Doa';
+      case 'KIBLAT': return 'Arah Kiblat';
+      case 'SETTINGS': return 'Pengaturan';
       default: return ''; 
     }
   };
@@ -124,8 +124,12 @@ const App: React.FC = () => {
         setSelectedTajwidCategory(null);
     }
     setView(newView);
-    // Push state ke browser history agar tombol back device ter-intersepsi
-    window.history.pushState({ internal: true }, '');
+    // Sync browser history
+    if (window.history.state?.internal) {
+        window.history.replaceState({ internal: true, view: newView }, '');
+    } else {
+        window.history.pushState({ internal: true, view: newView }, '');
+    }
   };
 
   const goHome = () => handleNavigate('MENU');
@@ -161,36 +165,21 @@ const App: React.FC = () => {
     }
   };
 
-  // -- HARDWARE BACK BUTTON HANDLER --
+  // -- HARDWARE BACK BUTTON HANDLER (IMPROVED) --
   useEffect(() => {
     const onPopState = (event: PopStateEvent) => {
-      // Jika kita berada di halaman utama (MENU atau LOGIN), biarkan perilaku default (keluar app)
-      // Tapi jika kita berada di sub-halaman, jalankan handleBack
-      if (view !== 'MENU' && view !== 'LOGIN' && view !== 'SPLASH') {
+      // Jika di state terdalam, handleBack akan melangkah satu tingkat ke belakang
+      if (selectedDua || selectedSurah || selectedDuaCategory || selectedTajwidCategory || (view !== 'MENU' && view !== 'LOGIN')) {
         event.preventDefault();
         handleBack();
-        // Push state lagi agar tombol back berikutnya tetap bisa ditangani
-        window.history.pushState({ internal: true }, '');
-      } else if (view === 'MENU' && (selectedSurah || selectedDua || selectedDuaCategory || selectedTajwidCategory)) {
-        event.preventDefault();
-        handleBack();
+        // Pertahankan intercept jika masih di dalam fitur
         window.history.pushState({ internal: true }, '');
       }
     };
 
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [view, selectedSurah, selectedDua, selectedDuaCategory, selectedTajwidCategory, previousView]);
-
-  // Efek untuk menangani pushState awal saat masuk ke fitur dari Menu Utama
-  useEffect(() => {
-    if (view !== 'SPLASH' && view !== 'LOGIN' && view !== 'MENU') {
-        // Hanya push jika belum ada state internal (mencegah loop)
-        if (!window.history.state || !window.history.state.internal) {
-            window.history.pushState({ internal: true }, '');
-        }
-    }
-  }, [view]);
+  }, [view, selectedSurah, selectedDua, selectedDuaCategory, selectedTajwidCategory]);
 
   if (view === 'SPLASH') {
     return <SplashScreen onFinish={() => setView('LOGIN')} />;
@@ -230,72 +219,74 @@ const App: React.FC = () => {
         className="hidden"
       />
 
-      {view === 'MENU' && <MainMenu onNavigate={handleNavigate} />}
-      
-      {view === 'QURAN_TEXT' && (
-        <QuranView 
-          mode="TEXT" 
-          selectedSurah={selectedSurah} 
-          onSelectSurah={(s) => {
-              setSelectedSurah(s);
-              if (s) window.history.pushState({ internal: true }, '');
-          }}
-          activeAudioSurah={activeAudioSurah}
-          isAudioPlaying={isAudioPlaying}
-          onPlaySurah={handlePlaySurah}
-        />
-      )}
-      
-      {view === 'QURAN_MP3' && (
-        <QuranView 
-          mode="MP3" 
-          selectedSurah={selectedSurah} 
-          onSelectSurah={(s) => {
-              setSelectedSurah(s);
-              if (s) window.history.pushState({ internal: true }, '');
-          }} 
-          activeAudioSurah={activeAudioSurah}
-          isAudioPlaying={isAudioPlaying}
-          onPlaySurah={handlePlaySurah}
-        />
-      )}
-      
-      {view === 'TAJWID' && (
-        <TajwidView 
-          selectedCategory={selectedTajwidCategory}
-          onSelectCategory={(c) => {
-              setSelectedTajwidCategory(c);
-              if (c) window.history.pushState({ internal: true }, '');
-          }}
-        />
-      )}
-      {view === 'SHOLAT' && <SholatView />}
-      
-      {view === 'DOA' && (
-        <DoaView 
-          selectedCategory={selectedDuaCategory}
-          onSelectCategory={(c) => {
-              setSelectedDuaCategory(c);
-              if (c) window.history.pushState({ internal: true }, '');
-          }}
-          selectedDua={selectedDua}
-          onSelectDua={(d) => {
-              setSelectedDua(d);
-              if (d) window.history.pushState({ internal: true }, '');
-          }}
-        />
-      )}
-      
-      {view === 'KIBLAT' && <KiblatView />}
+      <div key={view} className="animate-page-in h-full flex flex-col">
+          {view === 'MENU' && <MainMenu onNavigate={handleNavigate} />}
+          
+          {view === 'QURAN_TEXT' && (
+            <QuranView 
+              mode="TEXT" 
+              selectedSurah={selectedSurah} 
+              onSelectSurah={(s) => {
+                  setSelectedSurah(s);
+                  if (s) window.history.pushState({ internal: true }, '');
+              }}
+              activeAudioSurah={activeAudioSurah}
+              isAudioPlaying={isAudioPlaying}
+              onPlaySurah={handlePlaySurah}
+            />
+          )}
+          
+          {view === 'QURAN_MP3' && (
+            <QuranView 
+              mode="MP3" 
+              selectedSurah={selectedSurah} 
+              onSelectSurah={(s) => {
+                  setSelectedSurah(s);
+                  if (s) window.history.pushState({ internal: true }, '');
+              }} 
+              activeAudioSurah={activeAudioSurah}
+              isAudioPlaying={isAudioPlaying}
+              onPlaySurah={handlePlaySurah}
+            />
+          )}
+          
+          {view === 'TAJWID' && (
+            <TajwidView 
+              selectedCategory={selectedTajwidCategory}
+              onSelectCategory={(c) => {
+                  setSelectedTajwidCategory(c);
+                  if (c) window.history.pushState({ internal: true }, '');
+              }}
+            />
+          )}
+          {view === 'SHOLAT' && <SholatView />}
+          
+          {view === 'DOA' && (
+            <DoaView 
+              selectedCategory={selectedDuaCategory}
+              onSelectCategory={(c) => {
+                  setSelectedDuaCategory(c);
+                  if (c) window.history.pushState({ internal: true }, '');
+              }}
+              selectedDua={selectedDua}
+              onSelectDua={(d) => {
+                  setSelectedDua(d);
+                  if (d) window.history.pushState({ internal: true }, '');
+              }}
+            />
+          )}
+          
+          {view === 'KIBLAT' && <KiblatView />}
 
-      {view === 'SETTINGS' && (
-        <SettingsView 
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          notifEnabled={notifEnabled}
-          setNotifEnabled={setNotifEnabled}
-        />
-      )}
+          {view === 'SETTINGS' && (
+            <SettingsView 
+              darkMode={darkMode}
+              setDarkMode={setDarkMode}
+              notifEnabled={notifEnabled}
+              setNotifEnabled={setNotifEnabled}
+            />
+          )}
+      </div>
     </Layout>
   );
 };

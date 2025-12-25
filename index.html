@@ -20,34 +20,42 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
       .font-arabic {
         font-family: 'Amiri', serif;
       }
       /* Custom scrollbar */
       ::-webkit-scrollbar {
-        width: 5px;
+        width: 4px;
       }
       ::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.05);
+        background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: rgba(239, 250, 205, 0.3);
+        background: rgba(239, 250, 205, 0.2);
         border-radius: 10px;
       }
+      @keyframes pageIn {
+        from { opacity: 0; transform: translateX(15px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      .animate-page-in {
+        animation: pageIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
       @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
+        from { transform: translateY(30px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
       }
       .animate-slide-up {
-        animation: slideUp 0.4s ease-out forwards;
+        animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-in-out forwards;
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px border rgba(255, 255, 255, 0.1);
       }
     </style>
     <script type="importmap">

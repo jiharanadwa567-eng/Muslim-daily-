@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Headphones, GraduationCap, Clock, HeartHandshake, Compass, Settings } from 'lucide-react';
+import { BookOpen, Headphones, GraduationCap, Clock, HeartHandshake, Compass, Settings, Sparkles } from 'lucide-react';
 import { ViewState } from '../../types';
 
 interface MainMenuProps {
@@ -15,14 +15,14 @@ const MenuButton: React.FC<{
 }> = ({ title, icon, subtitle, onClick }) => (
   <button 
     onClick={onClick}
-    className="bg-[#EFFACD] rounded-2xl p-3 flex flex-col items-center justify-center gap-2 aspect-square shadow-lg transform transition-transform active:scale-95 group w-full"
+    className="bg-[#EFFACD] rounded-2xl p-3 flex flex-col items-center justify-center gap-2 aspect-square shadow-xl transform transition-all active:scale-95 active:rotate-1 group w-full"
   >
-    <div className="text-[#3B5998] group-hover:text-[#2A4070] transition-colors bg-white/20 p-2 rounded-full">
+    <div className="text-[#3B5998] group-hover:scale-110 transition-transform bg-white/30 p-2.5 rounded-xl">
       {icon}
     </div>
     <div className="text-center w-full">
         <h3 className="text-[#3B5998] font-bold text-xs leading-tight line-clamp-1">{title}</h3>
-        {subtitle && <span className="text-[#3B5998]/70 text-[10px] font-arabic block mt-0.5 truncate">{subtitle}</span>}
+        {subtitle && <span className="text-[#3B5998]/60 text-[10px] font-arabic block mt-0.5 truncate">{subtitle}</span>}
     </div>
   </button>
 );
@@ -30,23 +30,46 @@ const MenuButton: React.FC<{
 const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
   return (
     <div className="flex-1 flex flex-col w-full relative">
-        {/* Header Area for Main Menu */}
-        <div className="flex justify-between items-center py-6 px-4 z-20">
+        {/* Enhanced Header */}
+        <div className="flex justify-between items-start pt-8 pb-4 px-4 z-20">
             <div className="flex flex-col">
-                <h1 className="text-[#EFFACD] text-xl font-bold tracking-widest drop-shadow-sm">MUSLIM DAILY</h1>
-                <p className="text-[#EFFACD]/80 text-sm font-light">Assalamualaikum</p>
+                <div className="flex items-center gap-2 mb-1">
+                    <Sparkles size={14} className="text-[#EFFACD] animate-pulse" />
+                    <h1 className="text-[#EFFACD] text-2xl font-black tracking-tighter drop-shadow-lg">Muslim Daily</h1>
+                </div>
+                <p className="text-[#EFFACD]/70 text-xs font-medium tracking-wide">Assalamualaikum, Saudaraku</p>
             </div>
             <button 
                 onClick={() => onNavigate('SETTINGS')}
-                className="p-2 bg-[#EFFACD]/10 backdrop-blur-sm border border-[#EFFACD]/20 rounded-full text-[#EFFACD] hover:bg-[#EFFACD] hover:text-[#3B5998] transition-all shadow-sm"
-                aria-label="Pengaturan"
+                className="p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-[#EFFACD] hover:bg-[#EFFACD] hover:text-[#3B5998] transition-all shadow-xl active:scale-90"
             >
                 <Settings size={20} />
             </button>
         </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-20">
-        <div className="grid grid-cols-3 gap-3 pb-4">
+        {/* Quick Prayer Info Widget */}
+        <div className="px-4 mb-6">
+            <div className="bg-[#EFFACD]/10 backdrop-blur-lg border border-white/10 rounded-3xl p-4 flex items-center justify-between shadow-2xl">
+                <div className="flex items-center gap-3">
+                    <div className="bg-[#EFFACD] text-[#3B5998] p-2.5 rounded-2xl shadow-lg">
+                        <Clock size={20} />
+                    </div>
+                    <div>
+                        <p className="text-[#EFFACD]/60 text-[10px] uppercase font-bold tracking-widest">Sholat Berikutnya</p>
+                        <h4 className="text-[#EFFACD] text-lg font-black">Dzuhur <span className="text-sm font-light opacity-80">11:58</span></h4>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => onNavigate('SHOLAT')}
+                    className="bg-[#EFFACD] text-[#3B5998] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter shadow-lg active:scale-95"
+                >
+                    Lihat Jadwal
+                </button>
+            </div>
+        </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-20 custom-scrollbar">
+        <div className="grid grid-cols-3 gap-3.5 pb-6">
             <MenuButton 
             title="Alquran" 
             subtitle="القرآن"
@@ -54,7 +77,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
             onClick={() => onNavigate('QURAN_TEXT')} 
             />
             <MenuButton 
-            title="MP3" 
+            title="Murottal" 
             subtitle="صوت"
             icon={<Headphones size={28} />} 
             onClick={() => onNavigate('QURAN_MP3')} 
@@ -83,6 +106,20 @@ const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
             icon={<GraduationCap size={28} />} 
             onClick={() => onNavigate('TAJWID')} 
             />
+        </div>
+
+        {/* Motivation Card */}
+        <div className="bg-gradient-to-br from-[#EFFACD] to-[#d4e1a1] rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            <h5 className="text-[#3B5998] font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
+                <Sparkles size={12} /> Ayat Hari Ini
+            </h5>
+            <p className="text-[#3B5998] font-arabic text-xl leading-relaxed text-right mb-4">
+                فَإِنَّ مَعَ الْعُسْرِ يُسْرًا
+            </p>
+            <p className="text-[#3B5998]/80 text-[10px] italic font-medium leading-relaxed">
+                "Karena sesungguhnya sesudah kesulitan itu ada kemudahan." (QS. Al-Insyirah: 5)
+            </p>
         </div>
       </div>
     </div>
