@@ -63,5 +63,4 @@ export type ViewState =
   | 'SHOLAT' 
   | 'DOA' 
   | 'KIBLAT'
-  | 'TANYA_AI'
   | 'SETTINGS';

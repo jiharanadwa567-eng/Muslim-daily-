@@ -41,7 +41,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                             />
                         </div>
                     </div>
-                    <p className="text-[10px] opacity-50 italic">Nama ini digunakan untuk menyapa Anda di menu utama dan fitur Tanya AI.</p>
+                    <p className="text-[10px] opacity-50 italic">Nama ini digunakan untuk menyapa Anda di menu utama.</p>
                 </div>
             </div>
 

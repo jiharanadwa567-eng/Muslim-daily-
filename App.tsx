@@ -9,7 +9,6 @@ import TajwidView from './components/features/TajwidView';
 import SholatView from './components/features/SholatView';
 import DoaView from './components/features/DoaView';
 import KiblatView from './components/features/KiblatView';
-import TanyaAiView from './components/features/TanyaAiView';
 import SettingsView from './components/features/SettingsView';
 import GlobalPlayer from './components/GlobalPlayer';
 import { ViewState, Surah, DuaItem } from './types';
@@ -117,7 +116,6 @@ const App: React.FC = () => {
       case 'SHOLAT': return 'Jadwal Sholat';
       case 'DOA': return 'Kumpulan Doa';
       case 'KIBLAT': return 'Arah Kiblat';
-      case 'TANYA_AI': return 'Tanya AI (Gemini)';
       case 'SETTINGS': return 'Pengaturan';
       default: return ''; 
     }
@@ -187,117 +185,99 @@ const App: React.FC = () => {
 
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [view, selectedSurah, selectedDua, selectedDuaCategory, selectedTajwidCategory]);
+  }, [view, selectedDua, selectedSurah, selectedDuaCategory, selectedTajwidCategory]);
 
-  if (view === 'SPLASH') {
-    return <SplashScreen onFinish={() => setView('LOGIN')} />;
-  }
+  // Render Component Content
+  const renderContent = () => {
+    switch (view) {
+      case 'MENU':
+        return <MainMenu onNavigate={handleNavigate} userName={userName} />;
+      case 'QURAN_TEXT':
+        return (
+          <QuranView 
+            mode="TEXT" 
+            selectedSurah={selectedSurah} 
+            onSelectSurah={setSelectedSurah}
+            activeAudioSurah={activeAudioSurah}
+            isAudioPlaying={isAudioPlaying}
+            onPlaySurah={handlePlaySurah}
+          />
+        );
+      case 'QURAN_MP3':
+        return (
+          <QuranView 
+            mode="MP3" 
+            selectedSurah={selectedSurah} 
+            onSelectSurah={setSelectedSurah}
+            activeAudioSurah={activeAudioSurah}
+            isAudioPlaying={isAudioPlaying}
+            onPlaySurah={handlePlaySurah}
+          />
+        );
+      case 'TAJWID':
+        return <TajwidView selectedCategory={selectedTajwidCategory} onSelectCategory={setSelectedTajwidCategory} />;
+      case 'SHOLAT':
+        return <SholatView />;
+      case 'DOA':
+        return (
+          <DoaView 
+            selectedCategory={selectedDuaCategory} 
+            onSelectCategory={setSelectedDuaCategory}
+            selectedDua={selectedDua}
+            onSelectDua={setSelectedDua}
+          />
+        );
+      case 'KIBLAT':
+        return <KiblatView />;
+      case 'SETTINGS':
+        return (
+          <SettingsView 
+            darkMode={darkMode} 
+            setDarkMode={setDarkMode}
+            notifEnabled={notifEnabled}
+            setNotifEnabled={setNotifEnabled}
+            userName={userName}
+            setUserName={setUserName}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
-  if (view === 'LOGIN') {
-    return <LoginScreen onLogin={() => setView('MENU')} />;
-  }
+  if (view === 'SPLASH') return <SplashScreen onFinish={() => setView('LOGIN')} />;
+  if (view === 'LOGIN') return <LoginScreen onLogin={() => setView('MENU')} />;
 
-  const layoutProps = {
-    title: view === 'MENU' ? undefined : getTitle(view), 
-    showBack: view !== 'MENU', 
-    onBack: handleBack,        
-    showHome: view !== 'MENU',
-    onHome: goHome,
-    showSettings: true, 
-    onSettings: goSettings,
-    darkMode: darkMode,
-    audioPlayer: activeAudioSurah ? (
-        <GlobalPlayer 
-            surah={activeAudioSurah}
-            isPlaying={isAudioPlaying}
+  return (
+    <Layout 
+      title={getTitle(view)}
+      showBack={view !== 'MENU'}
+      onBack={handleBack}
+      showHome={view !== 'MENU'}
+      onHome={goHome}
+      showSettings={view === 'MENU'}
+      onSettings={goSettings}
+      darkMode={darkMode}
+      audioPlayer={
+        activeAudioSurah ? (
+          <GlobalPlayer 
+            surah={activeAudioSurah} 
+            isPlaying={isAudioPlaying} 
             onTogglePlay={toggleGlobalPlay}
             onClose={closeGlobalPlayer}
             progress={audioProgress}
             currentTime={audioCurrentTime}
-        />
-    ) : null
-  };
-
-  return (
-    <Layout {...layoutProps}>
+          />
+        ) : null
+      }
+    >
       <audio 
-        ref={audioRef}
-        onTimeUpdate={handleAudioTimeUpdate}
+        ref={audioRef} 
+        onTimeUpdate={handleAudioTimeUpdate} 
         onEnded={handleAudioEnded}
-        className="hidden"
+        className="hidden" 
       />
-
-      <div key={view} className="animate-page-in h-full flex flex-col">
-          {view === 'MENU' && <MainMenu onNavigate={handleNavigate} userName={userName} />}
-          
-          {view === 'QURAN_TEXT' && (
-            <QuranView 
-              mode="TEXT" 
-              selectedSurah={selectedSurah} 
-              onSelectSurah={(s) => {
-                  setSelectedSurah(s);
-                  if (s) window.history.pushState({ internal: true }, '');
-              }}
-              activeAudioSurah={activeAudioSurah}
-              isAudioPlaying={isAudioPlaying}
-              onPlaySurah={handlePlaySurah}
-            />
-          )}
-          
-          {view === 'QURAN_MP3' && (
-            <QuranView 
-              mode="MP3" 
-              selectedSurah={selectedSurah} 
-              onSelectSurah={(s) => {
-                  setSelectedSurah(s);
-                  if (s) window.history.pushState({ internal: true }, '');
-              }} 
-              activeAudioSurah={activeAudioSurah}
-              isAudioPlaying={isAudioPlaying}
-              onPlaySurah={handlePlaySurah}
-            />
-          )}
-          
-          {view === 'TAJWID' && (
-            <TajwidView 
-              selectedCategory={selectedTajwidCategory}
-              onSelectCategory={(c) => {
-                  setSelectedTajwidCategory(c);
-                  if (c) window.history.pushState({ internal: true }, '');
-              }}
-            />
-          )}
-          {view === 'SHOLAT' && <SholatView />}
-          
-          {view === 'DOA' && (
-            <DoaView 
-              selectedCategory={selectedDuaCategory}
-              onSelectCategory={(c) => {
-                  setSelectedDuaCategory(c);
-                  if (c) window.history.pushState({ internal: true }, '');
-              }}
-              selectedDua={selectedDua}
-              onSelectDua={(d) => {
-                  setSelectedDua(d);
-                  if (d) window.history.pushState({ internal: true }, '');
-              }}
-            />
-          )}
-          
-          {view === 'KIBLAT' && <KiblatView />}
-          {view === 'TANYA_AI' && <TanyaAiView />}
-
-          {view === 'SETTINGS' && (
-            <SettingsView 
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-              notifEnabled={notifEnabled}
-              setNotifEnabled={setNotifEnabled}
-              userName={userName}
-              setUserName={setUserName}
-            />
-          )}
-      </div>
+      {renderContent()}
     </Layout>
   );
 };
