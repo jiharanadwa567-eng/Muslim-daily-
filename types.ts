@@ -53,6 +53,12 @@ export interface DuaItem {
   source?: string;
 }
 
+export interface Verse {
+  arabic: string;
+  translation: string;
+  reference: string;
+}
+
 export type ViewState = 
   | 'SPLASH' 
   | 'LOGIN'
