@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { BookOpen, Headphones, GraduationCap, Clock, HeartHandshake, Compass, Settings, Sparkles } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { BookOpen, Headphones, GraduationCap, Clock, HeartHandshake, Compass, Settings, Sparkles, Calculator } from 'lucide-react';
 import { ViewState } from '../../types';
+import { DAILY_VERSES } from '../../constants';
 
 interface MainMenuProps {
   onNavigate: (view: ViewState) => void;
@@ -29,6 +30,15 @@ const MenuButton: React.FC<{
 );
 
 const MainMenu: React.FC<MainMenuProps> = ({ onNavigate, userName }) => {
+  // Logic to get current daily verse based on date
+  const dailyVerse = useMemo(() => {
+    const today = new Date();
+    // Use a unique index per day (Day + Month + Year) to rotate through verses
+    const daySeed = today.getDate() + (today.getMonth() * 31) + (today.getFullYear() % 100);
+    const index = daySeed % DAILY_VERSES.length;
+    return DAILY_VERSES[index];
+  }, []);
+
   return (
     <div className="flex-1 flex flex-col w-full relative">
         {/* Enhanced Header */}
@@ -107,19 +117,25 @@ const MainMenu: React.FC<MainMenuProps> = ({ onNavigate, userName }) => {
             icon={<GraduationCap size={28} />} 
             onClick={() => onNavigate('TAJWID')} 
             />
+            <MenuButton 
+            title="Zakat" 
+            subtitle="زكاة"
+            icon={<Calculator size={28} />} 
+            onClick={() => onNavigate('ZAKAT')} 
+            />
         </div>
 
-        {/* Motivation Card */}
+        {/* Dynamic Motivation Card (Ayat Hari Ini) */}
         <div className="bg-gradient-to-br from-[#EFFACD] to-[#d4e1a1] rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
             <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
             <h5 className="text-[#3B5998] font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
                 <Sparkles size={12} /> Ayat Hari Ini
             </h5>
             <p className="text-[#3B5998] font-arabic text-xl leading-relaxed text-right mb-4">
-                فَإِنَّ مَعَ الْعُسْرِ يُسْرًا
+                {dailyVerse.arabic}
             </p>
             <p className="text-[#3B5998]/80 text-[10px] italic font-medium leading-relaxed">
-                "Karena sesungguhnya sesudah kesulitan itu ada kemudahan." (QS. Al-Insyirah: 5)
+                "{dailyVerse.translation}" ({dailyVerse.reference})
             </p>
         </div>
       </div>
