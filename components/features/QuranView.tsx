@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, PlayCircle, ArrowLeft, PauseCircle, Loader2, BookOpen, Volume2, StopCircle, Grid } from 'lucide-react';
+import { Search, PlayCircle, ArrowLeft, PauseCircle, Loader2, BookOpen, Volume2, StopCircle, Grid, AlertCircle } from 'lucide-react';
 import { SURAH_LIST } from '../../constants';
 import { Surah, Ayah } from '../../types';
 
@@ -7,14 +8,11 @@ interface QuranViewProps {
   mode: 'TEXT' | 'MP3';
   selectedSurah: Surah | null;
   onSelectSurah: (surah: Surah | null) => void;
-  // Props dari App.tsx untuk Global Audio
   activeAudioSurah: Surah | null;
   isAudioPlaying: boolean;
   onPlaySurah: (surah: Surah) => void;
 }
 
-// Data Mapping Juz ke Range Surat (Start - End)
-// Catatan: Ini adalah pendekatan simplifikasi berdasarkan surat awal juz.
 const JUZ_MAPPING = [
     { id: 1, start: 1, end: 2 }, { id: 2, start: 2, end: 2 }, { id: 3, start: 2, end: 3 },
     { id: 4, start: 3, end: 4 }, { id: 5, start: 4, end: 4 }, { id: 6, start: 4, end: 5 },
@@ -39,25 +37,19 @@ const QuranView: React.FC<QuranViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [loading, setLoading] = useState(false);
-  
-  // -- TABS & JUZ STATE --
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'SURAH' | 'JUZ'>('SURAH');
   const [selectedJuzId, setSelectedJuzId] = useState<number | null>(null);
-
-  // Audio Per-Ayat tetap Local karena sifatnya sementara/belajar
   const [localPlayingAyahIndex, setLocalPlayingAyahIndex] = useState<number | null>(null);
   const localAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // LOGIC FILTERING
   const getFilteredSurahs = () => {
-      // 1. Jika Tab JUZ aktif DAN Juz sudah dipilih -> Filter berdasarkan Juz
       if (activeTab === 'JUZ' && selectedJuzId !== null) {
           const mapping = JUZ_MAPPING.find(j => j.id === selectedJuzId);
           if (mapping) {
               return SURAH_LIST.filter(s => s.number >= mapping.start && s.number <= mapping.end);
           }
       }
-      // 2. Default: Semua surat (bisa difilter search)
       return SURAH_LIST.filter(surah => 
         surah.transliteration.toLowerCase().includes(searchTerm.toLowerCase()) ||
         surah.translation.toLowerCase().includes(searchTerm.toLowerCase())
@@ -66,22 +58,22 @@ const QuranView: React.FC<QuranViewProps> = ({
 
   const filteredSurahs = getFilteredSurahs();
 
-  // Cleanup local audio
   useEffect(() => {
     return () => {
-        if (localAudioRef.current) {
-            localAudioRef.current.pause();
-        }
+        if (localAudioRef.current) localAudioRef.current.pause();
     };
   }, []);
 
-  // Fetch Ayah Data
   useEffect(() => {
     if (selectedSurah && mode === 'TEXT') {
       setLoading(true);
+      setError(null);
       setAyahs([]); 
       fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah.number}/editions/quran-uthmani,id.indonesian,ar.alafasy`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Network response was not ok");
+            return res.json();
+        })
         .then(data => {
             if (data.data && data.data.length >= 3) {
                 const arabicData = data.data[0].ayahs;
@@ -108,12 +100,14 @@ const QuranView: React.FC<QuranViewProps> = ({
                 setAyahs(combinedAyahs);
             }
         })
-        .catch(err => console.error("Gagal mengambil data ayat:", err))
+        .catch(err => {
+            console.error("Gagal mengambil data ayat:", err);
+            setError("Gagal memuat ayat. Pastikan Anda memiliki koneksi internet untuk memuat surat ini pertama kali.");
+        })
         .finally(() => setLoading(false));
     }
   }, [selectedSurah, mode]);
 
-  // Tajwid Logic
   const renderTajwidText = (text: string) => {
     const output: React.ReactNode[] = [];
     let i = 0;
@@ -158,7 +152,6 @@ const QuranView: React.FC<QuranViewProps> = ({
     return output;
   };
 
-  // --- AUDIO HANDLERS ---
   const handleFullSurahPlay = (e: React.MouseEvent, surah: Surah) => {
       e.stopPropagation();
       if (localPlayingAyahIndex !== null && localAudioRef.current) {
@@ -180,27 +173,13 @@ const QuranView: React.FC<QuranViewProps> = ({
     }
   };
 
-  const onLocalAudioEnded = () => {
-      setLocalPlayingAyahIndex(null);
-  };
-
-  const handleSurahClick = (surah: Surah) => {
-    if (mode === 'TEXT') {
-        onSelectSurah(surah);
-    } else {
-        handleFullSurahPlay({ stopPropagation: () => {} } as React.MouseEvent, surah);
-    }
-  };
-
-  // --- VIEW: DETAIL SURAT (TEXT MODE) ---
   if (selectedSurah && mode === 'TEXT') {
     const isThisSurahGlobalPlaying = activeAudioSurah?.number === selectedSurah.number && isAudioPlaying;
 
     return (
         <div className="w-full flex flex-col h-full animate-fade-in-up">
-            <audio ref={localAudioRef} onEnded={onLocalAudioEnded} className="hidden" />
+            <audio ref={localAudioRef} onEnded={() => setLocalPlayingAyahIndex(null)} className="hidden" />
             
-            {/* Header Detail */}
             <div className="flex items-center gap-3 mb-4">
                 <button 
                     onClick={() => onSelectSurah(null)}
@@ -218,15 +197,13 @@ const QuranView: React.FC<QuranViewProps> = ({
                     className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all shadow-md active:scale-95
                         ${isThisSurahGlobalPlaying ? 'bg-[#EFFACD] text-[#3B5998] border-[#EFFACD]' : 'border-[#EFFACD] text-[#EFFACD] hover:bg-[#EFFACD]/10'}
                     `}
-                    title="Putar Full Surat"
                 >
                      {isThisSurahGlobalPlaying ? <PauseCircle size={24} /> : <PlayCircle size={24} />}
                 </button>
             </div>
 
-            {/* List Ayat */}
-            <div className="flex-1 overflow-y-auto pr-1 pb-4 space-y-6">
-                {selectedSurah.number !== 9 && selectedSurah.number !== 1 && (
+            <div className="flex-1 overflow-y-auto pr-1 pb-4 space-y-6 custom-scrollbar">
+                {selectedSurah.number !== 9 && selectedSurah.number !== 1 && !error && (
                     <div className="text-center py-4 text-[#EFFACD] font-arabic text-2xl">
                         بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                     </div>
@@ -236,6 +213,17 @@ const QuranView: React.FC<QuranViewProps> = ({
                     <div className="flex flex-col items-center justify-center h-40 gap-3 text-white/50">
                         <Loader2 className="animate-spin" size={32} />
                         <p>Memuat ayat...</p>
+                    </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center justify-center h-40 gap-4 text-center px-6">
+                        <AlertCircle size={48} className="text-[#EFFACD] opacity-50" />
+                        <p className="text-[#EFFACD] text-sm leading-relaxed">{error}</p>
+                        <button 
+                            onClick={() => onSelectSurah(selectedSurah)}
+                            className="bg-[#EFFACD] text-[#3B5998] px-4 py-2 rounded-lg text-xs font-bold"
+                        >
+                            Coba Lagi
+                        </button>
                     </div>
                 ) : (
                     ayahs.map((ayah, idx) => {
@@ -276,11 +264,8 @@ const QuranView: React.FC<QuranViewProps> = ({
     );
   }
 
-  // --- VIEW: DAFTAR SURAT (MAIN LIST) ---
   return (
     <div className="w-full flex flex-col h-full relative">
-      
-      {/* FILTER BUTTONS (TAB) */}
       <div className="flex gap-2 mb-4 shrink-0">
         <button 
             onClick={() => { setActiveTab('SURAH'); setSelectedJuzId(null); }}
@@ -300,7 +285,6 @@ const QuranView: React.FC<QuranViewProps> = ({
         </button>
       </div>
 
-      {/* SEARCH BAR (Hanya muncul jika Tab SURAH, atau Tab JUZ sudah pilih Juz) */}
       {(activeTab === 'SURAH' || (activeTab === 'JUZ' && selectedJuzId !== null)) && (
           <div className="bg-[#EFFACD] rounded-lg p-3 mb-4 flex items-center shadow-md shrink-0">
              <Search className="text-[#3B5998] mr-2" size={20} />
@@ -314,10 +298,7 @@ const QuranView: React.FC<QuranViewProps> = ({
           </div>
       )}
 
-      {/* KONTEN UTAMA */}
-      <div className="flex-1 overflow-y-auto pb-4">
-        
-        {/* SCENARIO 1: TAB JUZ - TAMPILKAN GRID JUZ 1-30 */}
+      <div className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
         {activeTab === 'JUZ' && selectedJuzId === null && (
             <div className="grid grid-cols-3 gap-3 animate-fade-in-up">
                 {JUZ_MAPPING.map((item) => (
@@ -335,67 +316,31 @@ const QuranView: React.FC<QuranViewProps> = ({
             </div>
         )}
 
-        {/* SCENARIO 2: TAB JUZ - SUDAH PILIH JUZ (LIST SURAT TERFILTER) */}
-        {activeTab === 'JUZ' && selectedJuzId !== null && (
+        {(activeTab === 'JUZ' && selectedJuzId !== null) && (
             <div className="animate-slide-up space-y-2">
                 <div className="flex items-center gap-3 mb-4">
-                    <button 
-                        onClick={() => setSelectedJuzId(null)}
-                        className="bg-[#EFFACD] p-2 rounded-full text-[#3B5998] hover:scale-105 transition-transform shadow-md"
-                        aria-label="Kembali ke Daftar Juz"
-                    >
+                    <button onClick={() => setSelectedJuzId(null)} className="bg-[#EFFACD] p-2 rounded-full text-[#3B5998]">
                         <ArrowLeft size={20} />
                     </button>
                     <div>
                         <h2 className="text-[#EFFACD] text-lg font-bold">Juz {selectedJuzId}</h2>
-                        <p className="text-[#EFFACD]/70 text-xs">Daftar surat dalam Juz {selectedJuzId}</p>
                     </div>
                 </div>
-
-                {filteredSurahs.map((surah) => {
-                    const isCurrentGlobal = activeAudioSurah?.number === surah.number;
-                    return (
-                        <button 
-                            key={surah.number} 
-                            onClick={() => handleSurahClick(surah)}
-                            className={`w-full backdrop-blur-sm border rounded-xl p-4 flex items-center justify-between transition-all text-left group
-                                ${isCurrentGlobal 
-                                    ? 'bg-[#EFFACD]/20 border-[#EFFACD] shadow-lg scale-[1.01]' 
-                                    : 'bg-white/10 border-white/20 hover:bg-white/20'
-                                }
-                            `}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold transition-colors
-                                    ${isCurrentGlobal 
-                                        ? 'bg-[#EFFACD] text-[#3B5998] border-[#EFFACD]' 
-                                        : 'border-[#EFFACD] text-[#EFFACD] group-hover:bg-[#EFFACD] group-hover:text-[#3B5998]'
-                                    }
-                                `}>
-                                    {surah.number}
-                                </div>
-                                <div>
-                                    <h3 className={`font-semibold text-lg ${isCurrentGlobal ? 'text-[#EFFACD]' : 'text-white'}`}>
-                                        {surah.transliteration}
-                                    </h3>
-                                    <p className="text-gray-300 text-xs">{surah.translation} • {surah.totalAyah} Ayat</p>
-                                </div>
+                {filteredSurahs.map((surah) => (
+                    <button key={surah.number} onClick={() => onSelectSurah(surah)} className="w-full backdrop-blur-sm border rounded-xl p-4 flex items-center justify-between bg-white/10 border-white/20">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full border-2 border-[#EFFACD] text-[#EFFACD] flex items-center justify-center font-bold">{surah.number}</div>
+                            <div>
+                                <h3 className="font-semibold text-lg text-white">{surah.transliteration}</h3>
+                                <p className="text-gray-300 text-xs">{surah.translation} • {surah.totalAyah} Ayat</p>
                             </div>
-                            <div className="flex flex-col items-end gap-1">
-                                <span className="font-arabic text-xl text-[#EFFACD]">{surah.name}</span>
-                                {isCurrentGlobal ? (
-                                    isAudioPlaying ? <PauseCircle className="text-[#EFFACD]" size={20}/> : <PlayCircle className="text-[#EFFACD]" size={20} />
-                                ) : (
-                                    mode === 'MP3' ? <PlayCircle className="text-[#EFFACD] opacity-80" size={20} /> : <BookOpen className="text-[#EFFACD] opacity-80" size={20} />
-                                )}
-                            </div>
-                        </button>
-                    );
-                })}
+                        </div>
+                        <span className="font-arabic text-xl text-[#EFFACD]">{surah.name}</span>
+                    </button>
+                ))}
             </div>
         )}
 
-        {/* SCENARIO 3: TAB SURAH (DEFAULT LIST) */}
         {activeTab === 'SURAH' && (
             <div className="space-y-2">
                 {filteredSurahs.map((surah) => {
@@ -403,57 +348,31 @@ const QuranView: React.FC<QuranViewProps> = ({
                     return (
                         <button 
                             key={surah.number} 
-                            onClick={() => handleSurahClick(surah)}
+                            onClick={() => mode === 'TEXT' ? onSelectSurah(surah) : onPlaySurah(surah)}
                             className={`w-full backdrop-blur-sm border rounded-xl p-4 flex items-center justify-between transition-all text-left group
                                 ${isCurrentGlobal 
-                                    ? 'bg-[#EFFACD]/20 border-[#EFFACD] shadow-lg scale-[1.01]' 
+                                    ? 'bg-[#EFFACD]/20 border-[#EFFACD] shadow-lg' 
                                     : 'bg-white/10 border-white/20 hover:bg-white/20'
                                 }
                             `}
                         >
                             <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold transition-colors
-                                    ${isCurrentGlobal 
-                                        ? 'bg-[#EFFACD] text-[#3B5998] border-[#EFFACD]' 
-                                        : 'border-[#EFFACD] text-[#EFFACD] group-hover:bg-[#EFFACD] group-hover:text-[#3B5998]'
-                                    }
+                                    ${isCurrentGlobal && isAudioPlaying ? 'bg-[#EFFACD] text-[#3B5998]' : 'border-[#EFFACD] text-[#EFFACD]'}
                                 `}>
-                                    {isCurrentGlobal && isAudioPlaying ? (
-                                        <div className="flex gap-0.5 items-end h-4">
-                                            <span className="w-1 bg-[#3B5998] h-2 animate-[bounce_1s_infinite]"></span>
-                                            <span className="w-1 bg-[#3B5998] h-4 animate-[bounce_1.2s_infinite]"></span>
-                                            <span className="w-1 bg-[#3B5998] h-3 animate-[bounce_0.8s_infinite]"></span>
-                                        </div>
-                                    ) : (
-                                        surah.number
-                                    )}
+                                    {isCurrentGlobal && isAudioPlaying ? "..." : surah.number}
                                 </div>
                                 <div>
-                                    <h3 className={`font-semibold text-lg ${isCurrentGlobal ? 'text-[#EFFACD]' : 'text-white'}`}>
-                                        {surah.transliteration}
-                                    </h3>
+                                    <h3 className="font-semibold text-lg text-white">{surah.transliteration}</h3>
                                     <p className="text-gray-300 text-xs">{surah.translation} • {surah.totalAyah} Ayat</p>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1">
-                                <span className="font-arabic text-xl text-[#EFFACD]">{surah.name}</span>
-                                {isCurrentGlobal ? (
-                                    isAudioPlaying ? <PauseCircle className="text-[#EFFACD]" size={20}/> : <PlayCircle className="text-[#EFFACD]" size={20} />
-                                ) : (
-                                    mode === 'MP3' ? <PlayCircle className="text-[#EFFACD] opacity-80" size={20} /> : <BookOpen className="text-[#EFFACD] opacity-80" size={20} />
-                                )}
-                            </div>
+                            <span className="font-arabic text-xl text-[#EFFACD]">{surah.name}</span>
                         </button>
                     );
                 })}
-                {filteredSurahs.length === 0 && (
-                    <div className="text-center text-white/50 mt-10">
-                        Surat tidak ditemukan
-                    </div>
-                )}
             </div>
         )}
-
       </div>
     </div>
   );
