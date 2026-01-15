@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, PlayCircle, ArrowLeft, PauseCircle, Loader2, BookOpen, Volume2, StopCircle, Grid, AlertCircle } from 'lucide-react';
+import { Search, PlayCircle, ArrowLeft, PauseCircle, Loader2, BookOpen, Volume2, StopCircle, Grid, AlertCircle, Info, X } from 'lucide-react';
 import { SURAH_LIST } from '../../constants';
 import { Surah, Ayah } from '../../types';
 
@@ -41,6 +41,7 @@ const QuranView: React.FC<QuranViewProps> = ({
   const [activeTab, setActiveTab] = useState<'SURAH' | 'JUZ'>('SURAH');
   const [selectedJuzId, setSelectedJuzId] = useState<number | null>(null);
   const [localPlayingAyahIndex, setLocalPlayingAyahIndex] = useState<number | null>(null);
+  const [selectedTafsirAyah, setSelectedTafsirAyah] = useState<Ayah | null>(null);
   const localAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const getFilteredSurahs = () => {
@@ -69,16 +70,18 @@ const QuranView: React.FC<QuranViewProps> = ({
       setLoading(true);
       setError(null);
       setAyahs([]); 
-      fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah.number}/editions/quran-uthmani,id.indonesian,ar.alafasy`)
+      // Mengambil 4 edisi: Arab, Terjemah ID, Audio Afasy, dan Tafsir Jalalayn ID (Acuan Tanzil)
+      fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah.number}/editions/quran-uthmani,id.indonesian,ar.alafasy,id.jalalayn`)
         .then(res => {
             if (!res.ok) throw new Error("Network response was not ok");
             return res.json();
         })
         .then(data => {
-            if (data.data && data.data.length >= 3) {
+            if (data.data && data.data.length >= 4) {
                 const arabicData = data.data[0].ayahs;
                 const translationData = data.data[1].ayahs;
                 const audioData = data.data[2].ayahs;
+                const tafsirData = data.data[3].ayahs;
                 
                 const combinedAyahs: Ayah[] = arabicData.map((ayah: any, index: number) => {
                     let arabicText = ayah.text;
@@ -94,7 +97,8 @@ const QuranView: React.FC<QuranViewProps> = ({
                             arab: arabicText,
                             translation: translationData[index].text
                         },
-                        audio: audioData[index].audio
+                        audio: audioData[index].audio,
+                        tafsir: tafsirData[index].text
                     };
                 });
                 setAyahs(combinedAyahs);
@@ -180,6 +184,49 @@ const QuranView: React.FC<QuranViewProps> = ({
         <div className="w-full flex flex-col h-full animate-fade-in-up">
             <audio ref={localAudioRef} onEnded={() => setLocalPlayingAyahIndex(null)} className="hidden" />
             
+            {/* Modal Tafsir */}
+            {selectedTafsirAyah && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedTafsirAyah(null)}></div>
+                    <div className="relative bg-white text-slate-800 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-slide-up">
+                        <div className="bg-[#3B5998] p-4 flex justify-between items-center text-[#EFFACD]">
+                            <h3 className="font-bold flex items-center gap-2">
+                                <Info size={18} />
+                                Tafsir Ayat {selectedTafsirAyah.number.inSurah}
+                            </h3>
+                            <button onClick={() => setSelectedTafsirAyah(null)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                            <div className="mb-6">
+                                <p className="text-right font-arabic text-2xl leading-relaxed mb-4" dir="rtl">
+                                    {selectedTafsirAyah.text.arab}
+                                </p>
+                                <p className="text-xs font-bold text-[#3B5998] uppercase tracking-wider mb-1">Terjemahan:</p>
+                                <p className="text-sm italic text-slate-600 border-l-4 border-[#EFFACD] pl-3">
+                                    {selectedTafsirAyah.text.translation}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-[#3B5998] uppercase tracking-wider mb-2">Penjelasan (Tafsir Jalalayn):</p>
+                                <p className="text-sm leading-relaxed text-slate-700 text-justify">
+                                    {selectedTafsirAyah.tafsir}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-slate-50 border-t flex justify-center">
+                            <button 
+                                onClick={() => setSelectedTafsirAyah(null)}
+                                className="bg-[#3B5998] text-[#EFFACD] px-8 py-2 rounded-xl text-sm font-bold shadow-md active:scale-95 transition-all"
+                            >
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center gap-3 mb-4">
                 <button 
                     onClick={() => onSelectSurah(null)}
@@ -240,14 +287,23 @@ const QuranView: React.FC<QuranViewProps> = ({
                                     <div className="w-8 h-8 rounded-full bg-[#EFFACD]/20 flex items-center justify-center text-[#EFFACD] text-xs font-bold border border-[#EFFACD]/30">
                                         {ayah.number.inSurah}
                                     </div>
-                                    <button 
-                                        onClick={() => toggleAyahAudio(ayah.audio, idx)}
-                                        className={`p-2 rounded-full transition-all active:scale-95
-                                            ${isThisAyahPlaying ? 'text-[#EFFACD] bg-[#EFFACD]/20' : 'text-white/40 hover:text-[#EFFACD] hover:bg-white/10'}
-                                        `}
-                                    >
-                                        {isThisAyahPlaying ? <StopCircle size={20} /> : <Volume2 size={20} />}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => setSelectedTafsirAyah(ayah)}
+                                            className="p-2 rounded-full text-white/40 hover:text-[#EFFACD] hover:bg-white/10 transition-all active:scale-95"
+                                            title="Lihat Tafsir"
+                                        >
+                                            <Info size={20} />
+                                        </button>
+                                        <button 
+                                            onClick={() => toggleAyahAudio(ayah.audio, idx)}
+                                            className={`p-2 rounded-full transition-all active:scale-95
+                                                ${isThisAyahPlaying ? 'text-[#EFFACD] bg-[#EFFACD]/20' : 'text-white/40 hover:text-[#EFFACD] hover:bg-white/10'}
+                                            `}
+                                        >
+                                            {isThisAyahPlaying ? <StopCircle size={20} /> : <Volume2 size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <p className="text-right font-arabic text-3xl leading-[2.5] text-white mb-6" dir="rtl">
                                     {renderTajwidText(ayah.text.arab)}

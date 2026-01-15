@@ -16,6 +16,7 @@ export interface Ayah {
     translation: string;
   };
   audio?: string;
+  tafsir?: string;
 }
 
 export interface PrayerTime {
