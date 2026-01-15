@@ -1,5 +1,51 @@
 
-import { Surah, PrayerTime, TajwidRule, TajwidCategory, DuaCategory, DuaItem, Verse } from './types';
+import { Surah, PrayerTime, TajwidRule, TajwidCategory, DuaCategory, DuaItem } from './types';
+
+// Definisi Interface untuk Ayat Harian
+export interface Verse {
+  arabic: string;
+  translation: string;
+  reference: string;
+}
+
+// KOLEKSI AYAT HARI INI (Dinamis)
+export const DAILY_VERSES: Verse[] = [
+  { 
+    arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", 
+    translation: "Karena sesungguhnya sesudah kesulitan itu ada kemudahan.", 
+    reference: "QS. Al-Insyirah: 5" 
+  },
+  { 
+    arabic: "وَتَزَوَّدُوا فَإِنَّ خَيْرَ الزَّادِ التَّقْوَىٰ", 
+    translation: "Berbekallah, dan sesungguhnya sebaik-baik bekal adalah takwa.", 
+    reference: "QS. Al-Baqarah: 197" 
+  },
+  { 
+    arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً", 
+    translation: "Ya Tuhan kami, berilah kami kebaikan di dunia dan kebaikan di akhirat.", 
+    reference: "QS. Al-Baqarah: 201" 
+  },
+  { 
+    arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", 
+    translation: "Ingatlah, hanya dengan mengingati Allah-lah hati menjadi tenteram.", 
+    reference: "QS. Ar-Ra'd: 28" 
+  },
+  { 
+    arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", 
+    translation: "Allah tidak membebani seseorang melainkan sesuai dengan kesanggupannya.", 
+    reference: "QS. Al-Baqarah: 286" 
+  },
+  { 
+    arabic: "إِنَّ مَعَ الْعَسْرِ يُسْرًا", 
+    translation: "Sesungguhnya sesudah kesulitan itu ada kemudahan.", 
+    reference: "QS. Al-Insyirah: 6" 
+  },
+  { 
+    arabic: "وَاعْبُدْ رَبَّكَ حَتَّىٰ يَأْتِيَكَ الْيَقِينُ", 
+    translation: "Dan sembahlah Tuhanmu sampai datang kepadamu kematian.", 
+    reference: "QS. Al-Hijr: 99" 
+  }
+];
 
 // DATA SURAT LENGKAP 114 SURAT
 export const SURAH_LIST: Surah[] = [
@@ -376,7 +422,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 24,
     categoryId: 'harian',
     title: "Doa Keluar Masjid",
-    arabic: "بِسْمِ اللهِ وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللهِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ",
+    arabic: "بِسْمِ اللهِ وَالصَّلَاةُ وَالصَّلَامُ عَلَى رَسُولِ اللهِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ",
     latin: "Bismillah wash-shalaatu was-salaamu 'ala rasuulillah. Allahumma inni as-aluka min fadlik.",
     translation: "Dengan nama Allah, shalawat dan salam atas Rasulullah. Ya Allah, sesungguhnya aku memohon keutamaan dari-Mu.",
     source: "HR. Muslim no. 713"
@@ -405,7 +451,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 32,
     categoryId: 'harian',
     title: "Doa Sesudah Makan",
-    arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ",
+    arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ",
     latin: "Alhamdulillahilladzi ath'amanii hadza wa razaqaniihi min ghairi haulin minni wa laa quwwatin",
     translation: "Segala puji bagi Allah yang telah memberiku makanan ini, dan menjadikannya rezeki bagiku tanpa daya dan kekuatan dariku.",
     source: "HR. Tirmidzi no. 3458 (Hasan)"
@@ -432,7 +478,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 33,
     categoryId: 'harian',
     title: "Doa Tamu Kepada Tuan Rumah (Makanan)",
-    arabic: "اللَّهُمَّ بَارِكْ لَهُمْ فِيمَا رَزَقْتَهُمْ، وَاغْفِرْ لَهُمْ وَارْحَمْهُمْ",
+    arabic: "اللَّهُمَّ بَارِكْ لَهُمْ فِيمَا رَزقتَهُمْ، وَاغْفِرْ لَهُمْ وَارْحَمْهُمْ",
     latin: "Allahumma baarik lahum fiimaa razaqtahum, waghfir lahum warhamhum",
     translation: "Ya Allah, berkahilah mereka dalam rezeki yang telah Engkau berikan kepada mereka, ampunilah mereka dan rahmatilah mereka.",
     source: "HR. Muslim no. 2042"
@@ -462,7 +508,7 @@ export const DUA_ITEMS: DuaItem[] = [
     categoryId: 'harian',
     title: "Doa Kafaratul Majelis",
     arabic: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ",
-    latin: "Subhaanakallahumma wa bihamdika, asyhadu an laa ilaaha illaa anta, astaghfiruka wa atuubu ilaik",
+    latin: "Subhaanakallahumma wa bihamdika, asyhadu an laa ilaaha illaa anta, astavgfiruka wa atuubu ilaik",
     translation: "Maha Suci Engkau Ya Allah, dan dengan memuji-Mu, aku bersaksi bahwa tidak ada Tuhan selain Engkau, aku memohon ampun kepada-Mu dan aku bertaubat kepada-Mu.",
     source: "HR. Tirmidzi no. 3433 (Shahih)"
   },
@@ -580,7 +626,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 50,
     categoryId: 'harian',
     title: "Doa Ketika Angin Kencang",
-    arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا، وَخَيْرَ مَا فِيهَا، وَخَيْرَ مَا أُرْسِلَتْ بِهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا، وَشَرِّ مَا فِيهَا، وَشَرِّ مَا أُرْسِلَتْ بِهِ",
+    arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا، وَخَيْرَ مَا فِيهَا، وَخَيْرَ مَا أرسِلَتْ بِهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا، وَشَرِّ مَا فِيهَا، وَشَرِّ مَا أُرْسِلَتْ بِهِ",
     latin: "Allahumma inni as-aluka khairahaa, wa khaira maa fiihaa, wa khaira maa ursilat bih, wa a'udzu bika min syarrihaa, wa syarri maa fiihaa, wa syarri maa ursilat bih",
     translation: "Ya Allah, aku memohon kepada-Mu kebaikannya, kebaikan apa yang ada di dalamnya, dan kebaikan apa yang dibawanya. Dan aku berlindung kepada-Mu dari keburukannya, keburukan apa yang ada di dalamnya, dan keburukan apa yang dibawanya.",
     source: "HR. Muslim no. 899"
@@ -598,7 +644,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 54,
     categoryId: 'harian',
     title: "Doa Melihat Bulan Sabit (Awal Bulan)",
-    arabic: "اللَّهُ أَكْبَرُ، اللَّهُمَّ أَهِلَّهُ عَلَيْنَا بِالْأَمْنِ وَالْإِيمَانِ، وَالسَّلَامَةِ وَالْإِسْلَامِ، وَالتَّوْفِيقِ لِمَا تُحِبُّ رَبَّنَا وَتَرْضَى، رَبُّنَا وَرَبُّكَ اللهُ",
+    arabic: "اللَّهُ أَكْبَرُ، اللَّهُمَّ أَهِلَّهُ عَلَيْنَا بِالْأَمْنِ وَالْإِيمَانِ، وَالسَّلَامَةِ وَالْإِسْلَامِ، وَالتَّوْفِيقِ لِمَا تُحِبُّ رَبَّنَا وَتَرْضَى, رَبُّنَا وَرَبُّكَ اللهُ",
     latin: "Allahu Akbar, Allahumma ahillahu 'alaina bil amni wal iimaan, was salaamati wal islaam, wat taufiiqi limaa tuhibbu rabbanaa wa tardhaa, rabbunaa wa rabbukallah",
     translation: "Allah Maha Besar. Ya Allah, terbitkanlah bulan ini kepada kami dengan keamanan, keimanan, keselamatan, keislaman, dan taufik pada apa yang Engkau cintai dan Engkau ridhai. Tuhan kami dan Tuhanmu (wahai bulan) adalah Allah.",
     source: "HR. Tirmidzi no. 3451 (Shahih)"
@@ -636,7 +682,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 82,
     categoryId: 'harian',
     title: "Doa Singgah di Suatu Tempat (Agar Aman)",
-    arabic: "أَعُوذُ بِكَلِمَاتِ اللهِ Tَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
+    arabic: "أَعُوذُ بِكَلِمَاتِ اللهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
     latin: "A'udzu bikalimaatillahit taammaati min syarri maa khalaq",
     translation: "Aku berlindung dengan kalimat-kalimat Allah yang sempurna dari kejahatan makhluk yang Dia ciptakan.",
     source: "HR. Muslim no. 2708"
@@ -721,7 +767,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 73,
     categoryId: 'harian',
     title: "Doa Berlindung dari Kesulitan dan Malas",
-    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسEL، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ",
     latin: "Allahumma inni a'udzu bika minal hammi wal hazan, wal 'ajzi wal kasal, wal bukhli wal jubn, wa dhala'id dain wa ghalabatir rijaal",
     translation: "Ya Allah, aku berlindung kepada-Mu dari kegelisahan dan kesedihan, dari kelemahan dan kemalasan, dari kekikiran dan pengecut, dari lilitan hutang dan penindasan orang.",
     source: "HR. Bukhari no. 6369"
@@ -739,7 +785,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 75,
     categoryId: 'harian',
     title: "Doa Mohon Ampunan (Sayyidul Istighfar)",
-    arabic: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطعتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لَكَ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
+    arabic: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لَكَ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
     latin: "Allahumma anta rabbii laa ilaaha illaa anta, khalaqtanii wa anaa 'abduka, wa anaa 'alaa 'ahdika wa wa'dika mastatha'tu, a'udzu bika min syarri maa shana'tu, abuu-u laka bini'matika 'alayya, wa abuu-u laka bidzanbii faghfir lii, fa-innahu laa yaghfirudz dzunuuba illaa anta",
     translation: "Ya Allah, Engkau adalah Rabbku, tidak ada Tuhan selain Engkau. Engkau telah menciptakanku dan aku adalah hamba-Mu. Aku berada di atas perjanjian dan janji-Mu semampuku. Aku berlindung kepada-Mu dari keburukan perbuatanku. Aku mengakui nikmat-Mu kepadaku dan aku mengakui dosaku kepada-Mu, maka ampunilah aku. Sesungguhnya tidak ada yang dapat mengampuni dosa-dosa selain Engkau.",
     source: "HR. Bukhari no. 6306"
@@ -945,7 +991,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 205,
     categoryId: 'sholat',
     title: "Tashahhud Awal",
-    arabic: "التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ. أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ",
+    arabic: "التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ. أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ",
     latin: "At-tahiyyaatu lillaahi wash-sholawaatu wath-thoyyibaat. Assalaamu 'alaika ayyuhan-nabiyyu wa rohmatullaahi wa barokaatuh. Assalaamu 'alainaa wa 'alaa 'ibaadillaahish-shoolihiin. Asyhadu an laa ilaaha illallaah wa asyhadu anna Muhammadan 'abduhu wa rosuuluh.",
     translation: "Segala penghormatan, shalawat, dan kebaikan hanya milik Allah. Semoga salam sejahtera tercurah kepadamu wahai Nabi, beserta rahmat Allah dan keberkahan-Nya. Semoga salam sejahtera tercurah kepada kami dan hamba-hamba Allah yang shaleh. Aku bersaksi bahwa tidak ada Tuhan selain Allah, dan aku bersaksi bahwa Muhammad adalah hamba dan utusan-Nya.",
     source: "HR. Bukhari no. 6265, Muslim no. 402"
@@ -954,7 +1000,7 @@ export const DUA_ITEMS: DuaItem[] = [
     id: 206,
     categoryId: 'sholat',
     title: "Shalawat Nabi (Tashahhud Akhir)",
-    arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ",
+    arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِIDٌ مَجِيدٌ",
     latin: "Allahumma sholli 'ala Muhammad wa 'ala aali Muhammad, kamaa shollaita 'ala Ibrohim wa 'ala aali Ibrohim, innaka hamiidun majiid. Allahumma baarik 'ala Muhammad wa 'ala aali Muhammad, kamaa baarokta 'ala Ibrohim wa 'ala aali Ibrohim, innaka hamiidun majiid.",
     translation: "Ya Allah, limpahkanlah rahmat kepada Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah melimpahkan rahmat kepada Nabi Ibrahim dan keluarga Nabi Ibrahim, sesungguhnya Engkau Maha Terpuji lagi Maha Mulia. Ya Allah, berkahilah Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah memberkahi Nabi Ibrahim dan keluarga Nabi Ibrahim, sesungguhnya Engkau Maha Terpuji lagi Maha Mulia.",
     source: "HR. Bukhari no. 3370, Muslim no. 406"
@@ -1079,48 +1125,5 @@ export const DUA_ITEMS: DuaItem[] = [
     latin: "Subhaanalladzii sakkhara lanaa hadza wama kunna lahu muqriniin wa-inna ilaa rabbina lamunqalibuun",
     translation: "Maha Suci Tuhan yang telah menundukkan semua ini bagi kami padahal kami sebelumnya tidak mampu menguasainya, dan sesungguhnya kami akan kembali kepada Tuhan kami.",
     source: "HR. Muslim no. 1342"
-  }
-];
-
-export const DAILY_VERSES: Verse[] = [
-  {
-    arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
-    translation: "Karena sesungguhnya sesudah kesulitan itu ada kemudahan.",
-    reference: "QS. Al-Insyirah: 5"
-  },
-  {
-    arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
-    translation: "Allah tidak membebani seseorang melainkan sesuai dengan kesanggupannya.",
-    reference: "QS. Al-Baqarah: 286"
-  },
-  {
-    arabic: "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ",
-    translation: "Wahai orang-orang yang beriman! Mohonlah pertolongan (kepada Allah) dengan sabar dan shalat.",
-    reference: "QS. Al-Baqarah: 153"
-  },
-  {
-    arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا",
-    translation: "Barangsiapa bertakwa kepada Allah niscaya Dia akan mengadakan jalan keluar baginya.",
-    reference: "QS. At-Talaq: 2"
-  },
-  {
-    arabic: "وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ",
-    translation: "Janganlah kamu bersikap lemah, dan janganlah (pula) kamu bersedih hati, padahal kamulah orang-orang yang paling tinggi (derajatnya), jika kamu orang-orang yang beriman.",
-    reference: "QS. Ali 'Imran: 139"
-  },
-  {
-    arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
-    translation: "Ingatlah, hanya dengan mengingati Allah-lah hati menjadi tenteram.",
-    reference: "QS. Ar-Ra'd: 28"
-  },
-  {
-    arabic: "وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا",
-    translation: "Dan orang-orang yang berjihad untuk (mencari keridhaan) Kami, benar-benar akan Kami tunjukkan kepada mereka jalan-jalan Kami.",
-    reference: "QS. Al-Ankabut: 69"
-  },
-  {
-    arabic: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
-    translation: "Sesungguhnya Allah beserta orang-orang yang sabar.",
-    reference: "QS. Al-Baqarah: 153"
   }
 ];

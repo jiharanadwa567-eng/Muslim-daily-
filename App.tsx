@@ -9,7 +9,6 @@ import TajwidView from './components/features/TajwidView';
 import SholatView from './components/features/SholatView';
 import DoaView from './components/features/DoaView';
 import KiblatView from './components/features/KiblatView';
-import ZakatView from './components/features/ZakatView';
 import SettingsView from './components/features/SettingsView';
 import GlobalPlayer from './components/GlobalPlayer';
 import { ViewState, Surah, DuaItem } from './types';
@@ -117,7 +116,6 @@ const App: React.FC = () => {
       case 'SHOLAT': return 'Jadwal Sholat';
       case 'DOA': return 'Kumpulan Doa';
       case 'KIBLAT': return 'Arah Kiblat';
-      case 'ZAKAT': return 'Kalkulator Zakat';
       case 'SETTINGS': return 'Pengaturan';
       default: return ''; 
     }
@@ -231,8 +229,6 @@ const App: React.FC = () => {
         );
       case 'KIBLAT':
         return <KiblatView />;
-      case 'ZAKAT':
-        return <ZakatView />;
       case 'SETTINGS':
         return (
           <SettingsView 
