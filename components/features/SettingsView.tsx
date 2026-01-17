@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Bell, Info, Moon, Code, UserCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, Info, Moon, Code, UserCircle, Download, Share } from 'lucide-react';
 
 interface SettingsViewProps {
   darkMode: boolean;
@@ -19,9 +19,84 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   userName,
   setUserName
 }) => {
+    // State untuk PWA Install Prompt
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [isIOS, setIsIOS] = useState(false);
+    const [isStandalone, setIsStandalone] = useState(false);
+
+    useEffect(() => {
+        // Cek jika aplikasi sudah berjalan dalam mode standalone (terinstall)
+        const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+        setIsStandalone(isStandaloneMode);
+
+        // Handler untuk event beforeinstallprompt (Android/Desktop Chrome)
+        const handleBeforeInstallPrompt = (e: any) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        // Deteksi iOS
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+        setIsIOS(isIosDevice && !isStandaloneMode);
+
+        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            setDeferredPrompt(null);
+        }
+    };
+
     return (
         <div className="w-full flex flex-col h-full animate-fade-in-up space-y-4 pt-2 pb-10 overflow-y-auto custom-scrollbar">
             
+            {/* Group: PWA Install (Hanya tampil jika belum terinstall dan bisa diinstall) */}
+            {!isStandalone && (deferredPrompt || isIOS) && (
+                <div className={`rounded-2xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
+                    <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-widest border-b border-current pb-2 opacity-40">Install Aplikasi</h3>
+                    <div className="flex flex-col gap-4">
+                        {deferredPrompt && (
+                            <button 
+                                onClick={handleInstallClick}
+                                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${darkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-white/40 hover:bg-white/60'}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                        <Download size={20} />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="font-semibold text-sm block">Pasang Aplikasi</span>
+                                        <span className="text-[10px] opacity-70">Tambahkan ke layar utama HP Anda</span>
+                                    </div>
+                                </div>
+                            </button>
+                        )}
+
+                        {isIOS && (
+                            <div className={`p-3 rounded-xl ${darkMode ? 'bg-white/10' : 'bg-white/40'}`}>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                        <Share size={20} />
+                                    </div>
+                                    <span className="font-semibold text-sm">Install di iOS</span>
+                                </div>
+                                <p className="text-[10px] opacity-80 leading-relaxed">
+                                    1. Ketuk tombol <strong>Share</strong> (Bagikan) di browser Safari.<br/>
+                                    2. Pilih menu <strong>"Add to Home Screen"</strong> (Tambah ke Layar Utama).
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Group 0: Profile / Identity */}
             <div className={`rounded-2xl p-5 shadow-lg ${darkMode ? 'bg-[#2D3748] text-[#EFFACD]' : 'bg-[#EFFACD] text-[#3B5998]'}`}>
                 <h3 className="font-bold text-xs opacity-60 mb-4 uppercase tracking-widest border-b border-current pb-2 opacity-40">Identitas Diri</h3>
@@ -96,14 +171,30 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                         </div>
                         <span className="text-sm font-bold opacity-60 px-2 py-1 rounded bg-black/5">v1.3.0</span>
                     </div>
-                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
-                                <Code size={20} />
+                     <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg shadow-sm ${darkMode ? 'bg-white/10' : 'bg-white/60'}`}>
+                                    <Code size={20} />
+                                </div>
+                                <span className="font-semibold text-sm">Pengembang</span>
                             </div>
-                            <span className="font-semibold text-sm">Pengembang</span>
+                            <span className="text-sm font-bold opacity-60">Muslim Daily Team</span>
                         </div>
-                        <span className="text-sm font-bold opacity-60">Muslim Daily Team</span>
+                        <div className={`pl-12 text-sm font-medium space-y-1 ${darkMode ? 'opacity-70' : 'opacity-80'}`}>
+                             <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
+                                <span>Azmi Nur Fauziah</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
+                                <span>Salma Nurazijah</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
+                                <span>Jihar Anadwa</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
