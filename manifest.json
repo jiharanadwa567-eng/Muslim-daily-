@@ -2,10 +2,10 @@
 {
   "name": "Muslim Daily",
   "short_name": "Muslim Daily",
-  "id": "./",
+  "id": "/",
   "description": "Teman Ibadah Digital: Al-Qur'an, Jadwal Sholat, Doa & Tajwid",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#3B5998",
   "theme_color": "#3B5998",
