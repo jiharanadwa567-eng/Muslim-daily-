@@ -1,6 +1,6 @@
 
-const STATIC_CACHE = 'muslim-daily-static-v4';
-const DATA_CACHE = 'muslim-daily-data-v1';
+const STATIC_CACHE = 'muslim-daily-static-v5';
+const DATA_CACHE = 'muslim-daily-data-v2';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -44,22 +44,24 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Strategi Khusus untuk API (Al-Quran & Jadwal Sholat)
+  // Strategi Khusus untuk API (Al-Quran & Jadwal Sholat) - Cache First then Network
   if (url.hostname.includes('api.alquran.cloud') || url.hostname.includes('api.aladhan.com')) {
     event.respondWith(
-      caches.open(DATA_CACHE).then((cache) => {
-        return fetch(request)
-          .then((response) => {
-            // Jika berhasil, simpan/perbarui cache
-            if (response.status === 200) {
-              cache.put(request.url, response.clone());
-            }
-            return response;
-          })
-          .catch(() => {
-            // Jika gagal (offline), coba ambil dari cache
-            return cache.match(request.url);
-          });
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const cacheCopy = networkResponse.clone();
+            caches.open(DATA_CACHE).then((cache) => {
+              cache.put(request, cacheCopy);
+            });
+          }
+          return networkResponse;
+        }).catch(() => {
+            // Jika offline dan tidak ada di cache sama sekali
+            return null;
+        });
       })
     );
     return;

@@ -1,17 +1,33 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Calendar, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { MapPin, Calendar, Loader2, RefreshCw, AlertCircle, WifiOff } from 'lucide-react';
 import { PRAYER_TIMES as DEFAULT_TIMES } from '../../constants';
 import { PrayerTime } from '../../types';
 
 const SholatView: React.FC = () => {
-  const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>(DEFAULT_TIMES);
-  const [locationName, setLocationName] = useState<string>("Jakarta, Indonesia (Default)");
+  const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>(() => {
+    const saved = localStorage.getItem('last_known_prayer_times');
+    return saved ? JSON.parse(saved) : DEFAULT_TIMES;
+  });
+  const [locationName, setLocationName] = useState<string>(() => {
+    return localStorage.getItem('last_known_location') || "Jakarta, Indonesia (Default)";
+  });
   const [hijriDate, setHijriDate] = useState<string>("1446 H");
   const [gregorianDate, setGregorianDate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
   const [error, setError] = useState<string | null>(null);
   const [nextPrayerIndex, setNextPrayerIndex] = useState<number>(-1);
+
+  useEffect(() => {
+    const handleStatus = () => setIsOffline(!navigator.onLine);
+    window.addEventListener('online', handleStatus);
+    window.addEventListener('offline', handleStatus);
+    return () => {
+        window.removeEventListener('online', handleStatus);
+        window.removeEventListener('offline', handleStatus);
+    };
+  }, []);
 
   const processPrayerData = (timings: any) => {
     const sunriseParts = timings.Sunrise.split(':');
@@ -31,6 +47,7 @@ const SholatView: React.FC = () => {
     ];
     
     setPrayerTimes(finalTimes);
+    localStorage.setItem('last_known_prayer_times', JSON.stringify(finalTimes));
     determineNextPrayer(finalTimes);
   };
 
@@ -55,6 +72,13 @@ const SholatView: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    if (!navigator.onLine) {
+        setError("Anda sedang offline. Menampilkan data terakhir yang tersimpan.");
+        setLoading(false);
+        determineNextPrayer(prayerTimes);
+        return;
+    }
+
     if (!navigator.geolocation) {
         setError("Browser tidak mendukung Geolocation.");
         setLoading(false);
@@ -65,7 +89,7 @@ const SholatView: React.FC = () => {
         async (position) => {
             const { latitude, longitude } = position.coords;
             try {
-                // Fetch nama lokasi (dengan timeout)
+                // Fetch nama lokasi
                 const geoController = new AbortController();
                 const timeoutId = setTimeout(() => geoController.abort(), 5000);
                 
@@ -80,7 +104,9 @@ const SholatView: React.FC = () => {
                     const geoData = await geoRes.json();
                     const city = geoData.locality || geoData.city || "";
                     const region = geoData.principalSubdivision || "";
-                    setLocationName(`${city}, ${region}`);
+                    const fullLoc = `${city}, ${region}`;
+                    setLocationName(fullLoc);
+                    localStorage.setItem('last_known_location', fullLoc);
                 }
 
                 // Fetch jadwal sholat
@@ -100,9 +126,8 @@ const SholatView: React.FC = () => {
                     throw new Error("Gagal mengambil data jadwal.");
                 }
             } catch (err) {
-                console.error("Offline or API Error:", err);
-                setError("Mode Offline: Menggunakan jadwal standar.");
-                // Jika offline, determineNextPrayer tetap dipanggil untuk data default
+                console.error("API Error:", err);
+                setError("Gagal menyinkronkan jadwal. Menggunakan data terakhir.");
                 determineNextPrayer(prayerTimes);
             } finally {
                 setLoading(false);
@@ -146,16 +171,23 @@ const SholatView: React.FC = () => {
             </span>
           </div>
 
-          {error && (
+          {isOffline && (
+            <div className="mt-3 bg-orange-500/20 border border-orange-500/50 p-2 rounded-lg flex items-center justify-center gap-2 text-orange-200 text-[10px] mx-4 animate-pulse">
+                <WifiOff size={14} />
+                <span>Mode Offline Aktif</span>
+            </div>
+          )}
+
+          {error && !isOffline && (
             <div className="mt-3 bg-white/10 border border-white/20 p-2 rounded-lg flex items-center justify-center gap-2 text-[#EFFACD] text-[10px] mx-4">
                 <AlertCircle size={14} />
                 <span>{error}</span>
-                {!loading && <button onClick={fetchLocationAndData} className="ml-2 underline">Refresh</button>}
+                {!loading && <button onClick={fetchLocationAndData} className="ml-2 underline text-[#EFFACD]">Refresh</button>}
             </div>
           )}
        </div>
 
-       <div className="flex-1 overflow-y-auto space-y-3 pb-4 px-1">
+       <div className="flex-1 overflow-y-auto space-y-3 pb-4 px-1 custom-scrollbar">
           {loading && prayerTimes === DEFAULT_TIMES ? (
              <div className="flex flex-col items-center justify-center h-40 text-[#EFFACD]/50 gap-2">
                 <Loader2 className="animate-spin" size={32} />
@@ -186,7 +218,7 @@ const SholatView: React.FC = () => {
           )}
        </div>
 
-       {!loading && (
+       {!loading && !isOffline && (
            <div className="flex justify-center mt-2">
                <button 
                 onClick={fetchLocationAndData}
