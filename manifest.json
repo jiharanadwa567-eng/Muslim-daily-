@@ -2,11 +2,14 @@
 {
   "name": "Muslim Daily",
   "short_name": "Muslim Daily",
+  "id": "/",
   "description": "Teman Ibadah Digital: Al-Qur'an, Jadwal Sholat, Doa & Tajwid",
-  "start_url": "./index.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#3B5998",
   "theme_color": "#3B5998",
+  "orientation": "portrait",
+  "categories": ["lifestyle", "education", "religion"],
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2951/2951167.png",
@@ -17,9 +20,8 @@
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2951/2951167.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ],
-  "orientation": "portrait",
-  "scope": "./"
+  ]
 }

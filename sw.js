@@ -1,5 +1,5 @@
 
-const STATIC_CACHE = 'muslim-daily-static-v2';
+const STATIC_CACHE = 'muslim-daily-static-v3';
 const DATA_CACHE = 'muslim-daily-data-v1';
 
 const ASSETS_TO_CACHE = [
