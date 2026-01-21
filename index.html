@@ -80,6 +80,14 @@
   }
 }
 </script>
+    <script>
+      // Capture PWA install prompt globally to prevent missing it during React hydration
+      window.deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.deferredPrompt = e;
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

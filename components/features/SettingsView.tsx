@@ -29,10 +29,16 @@ const SettingsView: React.FC<SettingsViewProps> = ({
         const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
         setIsStandalone(isStandaloneMode);
 
-        // Handler untuk event beforeinstallprompt (Android/Desktop Chrome)
+        // 1. Cek apakah event sudah tertangkap secara global di index.html
+        if ((window as any).deferredPrompt) {
+            setDeferredPrompt((window as any).deferredPrompt);
+        }
+
+        // 2. Setup listener baru jika belum tertangkap
         const handleBeforeInstallPrompt = (e: any) => {
             e.preventDefault();
             setDeferredPrompt(e);
+            (window as any).deferredPrompt = e; // Update global
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -51,6 +57,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
             setDeferredPrompt(null);
+            (window as any).deferredPrompt = null;
         }
     };
 
