@@ -70,7 +70,6 @@ const QuranView: React.FC<QuranViewProps> = ({
       setLoading(true);
       setError(null);
       setAyahs([]); 
-      // Mengambil 4 edisi: Arab, Terjemah ID, Audio Afasy, dan Tafsir Jalalayn ID (Acuan Tanzil)
       fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah.number}/editions/quran-uthmani,id.indonesian,ar.alafasy,id.jalalayn`)
         .then(res => {
             if (!res.ok) throw new Error("Network response was not ok");
@@ -200,7 +199,7 @@ const QuranView: React.FC<QuranViewProps> = ({
                         </div>
                         <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
                             <div className="mb-6">
-                                <p className="text-right font-arabic text-2xl leading-relaxed mb-4" dir="rtl">
+                                <p className="text-right font-arabic text-2xl leading-[2.5] mb-4" dir="rtl" lang="ar">
                                     {selectedTafsirAyah.text.arab}
                                 </p>
                                 <p className="text-xs font-bold text-[#3B5998] uppercase tracking-wider mb-1">Terjemahan:</p>
@@ -251,7 +250,7 @@ const QuranView: React.FC<QuranViewProps> = ({
 
             <div className="flex-1 overflow-y-auto pr-1 pb-4 space-y-6 custom-scrollbar">
                 {selectedSurah.number !== 9 && selectedSurah.number !== 1 && !error && (
-                    <div className="text-center py-4 text-[#EFFACD] font-arabic text-2xl">
+                    <div className="text-center py-4 text-[#EFFACD] font-arabic text-2xl" lang="ar">
                         بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                     </div>
                 )}
@@ -293,7 +292,7 @@ const QuranView: React.FC<QuranViewProps> = ({
                                             className="p-2 rounded-full text-white/40 hover:text-[#EFFACD] hover:bg-white/10 transition-all active:scale-95"
                                             title="Lihat Tafsir"
                                         >
-                                            <Info size={20} />
+                                            <Info size={18} />
                                         </button>
                                         <button 
                                             onClick={() => toggleAyahAudio(ayah.audio, idx)}
@@ -305,7 +304,7 @@ const QuranView: React.FC<QuranViewProps> = ({
                                         </button>
                                     </div>
                                 </div>
-                                <p className="text-right font-arabic text-3xl leading-[2.5] text-white mb-6" dir="rtl">
+                                <p className="text-right font-arabic text-3xl leading-[2.5] text-white mb-6" dir="rtl" lang="ar">
                                     {renderTajwidText(ayah.text.arab)}
                                 </p>
                                 <p className="text-left text-white/80 text-sm leading-relaxed font-light">
@@ -391,7 +390,7 @@ const QuranView: React.FC<QuranViewProps> = ({
                                 <p className="text-gray-300 text-xs">{surah.translation} • {surah.totalAyah} Ayat</p>
                             </div>
                         </div>
-                        <span className="font-arabic text-xl text-[#EFFACD]">{surah.name}</span>
+                        <span className="font-arabic text-xl text-[#EFFACD]" lang="ar">{surah.name}</span>
                     </button>
                 ))}
             </div>
@@ -423,7 +422,7 @@ const QuranView: React.FC<QuranViewProps> = ({
                                     <p className="text-gray-300 text-xs">{surah.translation} • {surah.totalAyah} Ayat</p>
                                 </div>
                             </div>
-                            <span className="font-arabic text-xl text-[#EFFACD]">{surah.name}</span>
+                            <span className="font-arabic text-xl text-[#EFFACD]" lang="ar">{surah.name}</span>
                         </button>
                     );
                 })}
