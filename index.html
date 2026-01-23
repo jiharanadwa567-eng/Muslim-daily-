@@ -32,13 +32,31 @@
         user-select: none;
         -webkit-tap-highlight-color: transparent;
       }
+      
+      /* PERBAIKAN KHUSUS IOS UNTUK TEKS ARAB */
       .font-arabic {
         font-family: 'Amiri', 'Geeza Pro', 'Damascus', 'Times New Roman', serif;
+        direction: rtl;
+        text-align: right;
+        unicode-bidi: isolate;
+        /* WAJIB: Jangan gunakan letter-spacing selain 0/normal */
+        letter-spacing: 0 !important;
+        word-spacing: 0 !important;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
+        /* Memaksa ligatur Arab tetap aktif */
+        font-feature-settings: "rlig" 1, "calt" 1, "liga" 1, "clig" 1;
         font-variant-ligatures: common-ligatures;
-        line-height: 2.5 !important; /* Mencegah harakat terpotong di iOS */
+        line-height: 2.5 !important;
       }
+
+      /* Mencegah span Tajwid merusak koneksi huruf di iOS */
+      .font-arabic span {
+        display: inline !important; /* Jangan gunakan inline-block */
+        letter-spacing: 0 !important;
+        font-feature-settings: inherit;
+      }
+
       /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 4px;
